@@ -13,11 +13,11 @@ import {
   Menu,
   LogOut,
   LayoutDashboard,
-  Globe, // Changed icon for OSINT
+  Globe, 
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger,SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +50,7 @@ export function Navigation() {
   const router = useRouter()
   const [user, setUser] = useState<NavUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isOpen, setIsOpen] = useState(false) // ✅ STATE FOR MENU
 
   /* 🔥 FIREBASE AUTH LISTENER */
   useEffect(() => {
@@ -69,12 +70,13 @@ export function Navigation() {
   }, [])
 
   const handleLogout = async () => {
+    setIsOpen(false) // Close menu if open
     router.push("/")
   
-  // 2. Wait a tiny bit (50ms) for the page to unmount
-  setTimeout(async () => {
-    await signOut(auth)
-  }, 50)
+    // 2. Wait a tiny bit (50ms) for the page to unmount
+    setTimeout(async () => {
+      await signOut(auth)
+    }, 50)
   }
 
   /* ❌ Hide nav on auth pages */
@@ -158,7 +160,7 @@ export function Navigation() {
             </div>
 
             {/* ===== MOBILE NAV ===== */}
-            <Sheet>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}> {/* ✅ CONNECTED TO STATE */}
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon">
                   <Menu className="h-6 w-6" />
@@ -176,10 +178,28 @@ export function Navigation() {
                   CyberScan AI
                 </div>
 
-                <div className="mb-6 rounded-lg bg-muted p-3">
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
+                {/* ✅ FIXED PROFILE BOX: CLICKABLE & CLOSES MENU */}
+                <Link 
+                  href="/profile" 
+                  onClick={() => setIsOpen(false)} // Close menu on click
+                  className="mb-6 block rounded-xl border border-slate-800 bg-slate-950/50 p-3.5 transition-all active:scale-95 active:bg-slate-900 hover:border-cyan-500/50"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Avatar Circle */}
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-bold shadow-sm">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    {/* Text */}
+                    <div className="flex flex-col overflow-hidden text-left">
+                      <span className="truncate text-sm font-semibold text-slate-200">
+                        {user.name}
+                      </span>
+                      <span className="truncate text-xs text-slate-500">
+                        Profile & Settings
+                      </span>
+                    </div>
+                  </div>
+                </Link>
 
                 <nav className="flex flex-col gap-4">
                   {navItems.map((item) => {
@@ -190,6 +210,7 @@ export function Navigation() {
                       <Link
                         key={item.href}
                         href={item.href}
+                        onClick={() => setIsOpen(false)} // ✅ AUTO-CLOSE MENU ON LINK CLICK
                         className={cn(
                           "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
                           isActive
@@ -206,7 +227,7 @@ export function Navigation() {
                   <Button
                     variant="destructive"
                     onClick={handleLogout}
-                    className="justify-start"
+                    className="justify-start mt-4"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout

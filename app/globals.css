@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
+
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -122,5 +125,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* ADD THESE 2 LINES BELOW */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
