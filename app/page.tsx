@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react" 
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { motion } from "framer-motion" // ⚡ Added for animation
+import { motion } from "framer-motion"
 import {
   Shield,
   Scan,
@@ -22,24 +22,50 @@ import {
   CheckCircle2,
   Hash,
   Beaker,
-  Eye, // ⚡ Added for OSINT
+  Eye,
   Shell
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getUser } from "@/lib/auth"
-import { CyberWrapper } from "@/components/cyber-wrapper" // ⚡ Added Wrapper
+import { CyberWrapper } from "@/components/cyber-wrapper"
+
+// 🔥 IMPORT FIREBASE AUTH 🔥
+import { onAuthStateChanged } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 
 export default function Home() {
   const router = useRouter()
+  const [loading, setLoading] = useState(true) // ⏳ Loading state
 
+  // ✅ LOGIC: REAL-TIME REDIRECT
   useEffect(() => {
-    const user = getUser()
-    if (user) {
-      router.push("/dashboard")
-    }
+    // This listener waits for Firebase to confirm the user status
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User detected, redirecting to Dashboard...");
+        router.push("/dashboard")
+      } else {
+        setLoading(false) // No user, show the landing page
+      }
+    })
+
+    // Cleanup the listener when the page closes
+    return () => unsubscribe()
   }, [router])
 
+  // ⏳ LOADING SCREEN (Prevents "Welcome" flash)
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#020617] text-cyan-500">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent"></div>
+          <p className="animate-pulse font-mono text-sm tracking-widest">INITIALIZING SYSTEM...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 👇 YOUR LANDING PAGE CONTENT STAYS EXACTLY THE SAME 👇
   return (
     <CyberWrapper>
       <div className="min-h-screen">
@@ -234,7 +260,7 @@ export default function Home() {
   )
 }
 
-// --- SUB-COMPONENTS FOR CLEANER CODE ---
+// --- SUB-COMPONENTS ---
 
 function HubCard({ icon: Icon, title, desc, color, bgColor, borderColor, items }: any) {
   return (
