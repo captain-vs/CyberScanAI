@@ -21,17 +21,15 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'           # <--- UPDATED TO 21 (Fixes the build error)
 
       - name: Install Dependencies
         run: npm install
 
-      # --- NEW FIX STARTS HERE ---
       - name: Create Missing Folders
         run: |
           mkdir -p public
           mkdir -p android/app/src/main/assets
-      # --- NEW FIX ENDS HERE ---
 
       - name: Sync Capacitor
         run: npx cap sync android
