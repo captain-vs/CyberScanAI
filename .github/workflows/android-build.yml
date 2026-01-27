@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22             # <--- UPDATED TO 22 (Fixes the fatal error)
+          node-version: 22
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -25,6 +25,13 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
+
+      # --- NEW FIX STARTS HERE ---
+      - name: Create Missing Folders
+        run: |
+          mkdir -p public
+          mkdir -p android/app/src/main/assets
+      # --- NEW FIX ENDS HERE ---
 
       - name: Sync Capacitor
         run: npx cap sync android
