@@ -27,6 +27,16 @@ type ContentItem = {
 // --- STATIC DATA ---
 const tutorials: ContentItem[] = [
   {
+    id: "m0",
+    title: "Module 0: Terminal Velocity",
+    description: "Interactive Lab: Learn basic CLI commands and establish your first secure connection.",
+    category: "Basics",
+    readTime: "5 min",
+    author: "System Root",
+    difficulty: "Beginner",
+    url: "/learn/lab/module0" // ✅ Internal Link
+  },
+  {
     id: "t1",
     title: "Complete Guide to 2FA & Auth Security",
     description: "Interactive Lab: Configure Two-Factor Authentication and understand backup codes.",
@@ -169,37 +179,48 @@ function LearnContent() {
     })
   }
 
-  const renderContentCard = (item: ContentItem) => (
-    <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <Link href={item.url || `/learn/article/${item.id}`} target={item.url ? "_blank" : "_self"}>
-        <Card className="group h-full bg-[#0b0f17] border-slate-800 hover:border-blue-500/50 transition-all duration-300 hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.2)]">
-          {item.image && (
-            <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f17] to-transparent z-10" />
-              <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
-            </div>
-          )}
-          <CardHeader>
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">{item.category}</Badge>
-              <Badge variant="outline" className={getDifficultyColor(item.difficulty)}>{item.difficulty}</Badge>
-            </div>
-            <CardTitle className="line-clamp-2 text-xl text-white group-hover:text-blue-400 transition-colors">{item.title}</CardTitle>
-            <CardDescription className="line-clamp-2 text-slate-400">{item.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 flex items-center justify-between text-xs text-slate-500 font-mono">
-              <div className="flex items-center gap-1"><User className="h-3 w-3" /> {item.author}</div>
-              <div className="flex items-center gap-1"><Clock className="h-3 w-3" /> {item.readTime}</div>
-            </div>
-            <Button variant="outline" className="w-full border-slate-700 bg-slate-900/50 text-slate-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 transition-all">
-              {item.url ? "Read External Source" : "Start Module"} <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
-      </Link>
-    </motion.div>
-  )
+  // ✅ UPDATED RENDER FUNCTION
+  const renderContentCard = (item: ContentItem) => {
+    // 1. Check if it's an external link (starts with http)
+    const isExternal = item.url?.startsWith("http");
+    
+    // 2. Determine the href (Internal Module vs External Site vs Article ID)
+    const href = item.url || `/learn/article/${item.id}`;
+
+    return (
+      <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        {/* 3. Use logic to determine target (Self for internal, Blank for external) */}
+        <Link href={href} target={isExternal ? "_blank" : "_self"}>
+          <Card className="group h-full bg-[#0b0f17] border-slate-800 hover:border-blue-500/50 transition-all duration-300 hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.2)]">
+            {item.image && (
+              <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f17] to-transparent z-10" />
+                <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
+              </div>
+            )}
+            <CardHeader>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">{item.category}</Badge>
+                <Badge variant="outline" className={getDifficultyColor(item.difficulty)}>{item.difficulty}</Badge>
+              </div>
+              <CardTitle className="line-clamp-2 text-xl text-white group-hover:text-blue-400 transition-colors">{item.title}</CardTitle>
+              <CardDescription className="line-clamp-2 text-slate-400">{item.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4 flex items-center justify-between text-xs text-slate-500 font-mono">
+                <div className="flex items-center gap-1"><User className="h-3 w-3" /> {item.author}</div>
+                <div className="flex items-center gap-1"><Clock className="h-3 w-3" /> {item.readTime}</div>
+              </div>
+              <Button variant="outline" className="w-full border-slate-700 bg-slate-900/50 text-slate-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 transition-all">
+                {/* 4. Correct Text for Button */}
+                {isExternal ? "Read External Source" : "Start Module"} <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+      </motion.div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black text-slate-200 relative overflow-hidden font-sans selection:bg-blue-500/30">
