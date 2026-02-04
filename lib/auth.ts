@@ -5,79 +5,84 @@ import {
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
+  User as FirebaseUser
 } from "firebase/auth"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 
-export interface User {
-  recentActivity: any
+export interface UserProfile {
   id: string
   email: string
   name: string
+  photoURL?: string
   createdAt: string
   stats: {
-    scansCompleted: number
-    quizzesCompleted: number
-    challengesCompleted: number
+    scanned: number
     points: number
     level: number
+    rank: number
   }
   achievements: string[]
+  recentActivity: any[]
+  role: "student" | "admin"
 }
 
-// Global cache
-let cachedUser: User | null = null
+// Global cache for instant access
+let cachedUser: UserProfile | null = null
 
 export function getUser() {
   return cachedUser
 }
 
-// 🔥 CRITICAL FIX: Keep cachedUser in sync on reload
+// 🔥 SYNC: Keep cachedUser updated automatically on reload
 onAuthStateChanged(auth, async (firebaseUser) => {
   if (firebaseUser) {
     try {
       const userRef = doc(db, "users", firebaseUser.uid)
       const snap = await getDoc(userRef)
       if (snap.exists()) {
-        cachedUser = snap.data() as User
+        cachedUser = snap.data() as UserProfile
       }
     } catch (e) {
-      console.error("Auth sync error:", e)
+      console.error("Auth sync warning:", e)
     }
   } else {
     cachedUser = null
   }
 })
 
-/* ================= SIGN UP ================= */
+/* ================= HELPER: DEFAULT USER DATA ================= */
+const createDefaultUser = (user: FirebaseUser, name?: string): UserProfile => ({
+  id: user.uid,
+  email: user.email || "",
+  name: name || user.displayName || "Agent",
+  photoURL: user.photoURL || "",
+  createdAt: new Date().toISOString(),
+  role: "student",
+  stats: {
+    scanned: 0,
+    points: 0,
+    level: 1,
+    rank: 0
+  },
+  achievements: [],
+  recentActivity: []
+})
+
+/* ================= SIGN UP (EMAIL) ================= */
 export async function signUp(email: string, password: string, name: string) {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password)
-
     const userRef = doc(db, "users", cred.user.uid)
-
-    const userData: User = {
-      id: cred.user.uid,
-      email,
-      name,
-      createdAt: new Date().toISOString(),
-      stats: {
-        scansCompleted: 0,
-        quizzesCompleted: 0,
-        challengesCompleted: 0,
-        points: 0,
-        level: 1,
-      },
-      achievements: [],
-      recentActivity: [],
-    }
+    
+    const newUser = createDefaultUser(cred.user, name)
 
     await setDoc(userRef, {
-      ...userData,
+      ...newUser,
       createdAt: serverTimestamp(),
     })
 
-    cachedUser = userData
+    cachedUser = newUser
     return { success: true }
   } catch (error: any) {
     console.error("SIGN UP ERROR:", error)
@@ -85,41 +90,25 @@ export async function signUp(email: string, password: string, name: string) {
   }
 }
 
-/* ================= SIGN IN ================= */
+/* ================= SIGN IN (EMAIL) ================= */
 export async function signIn(email: string, password: string) {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password)
     const userRef = doc(db, "users", cred.user.uid)
     const snap = await getDoc(userRef)
 
-    // ✅ AUTO-FIX: create profile if missing
+    // ✅ AUTO-FIX: Create profile if missing (Self-Healing)
     if (!snap.exists()) {
-      const newUser: User = {
-        id: cred.user.uid,
-        email: cred.user.email || email,
-        name: cred.user.displayName || "User",
-        createdAt: new Date().toISOString(),
-        stats: {
-          scansCompleted: 0,
-          quizzesCompleted: 0,
-          challengesCompleted: 0,
-          points: 0,
-          level: 1,
-        },
-        achievements: [],
-        recentActivity: [],
-      }
-
+      const newUser = createDefaultUser(cred.user)
       await setDoc(userRef, {
         ...newUser,
         createdAt: serverTimestamp(),
       })
-
       cachedUser = newUser
-      return { success: true }
+    } else {
+      cachedUser = snap.data() as UserProfile
     }
 
-    cachedUser = snap.data() as User
     return { success: true }
   } catch (error: any) {
     console.error("SIGN IN ERROR:", error)
@@ -127,45 +116,43 @@ export async function signIn(email: string, password: string) {
   }
 }
 
-/* ================= GOOGLE LOGIN ================= */
+/* ================= GOOGLE LOGIN (POPUP) ================= */
 export async function signInWithGoogle() {
   try {
     const provider = new GoogleAuthProvider()
-    const cred = await signInWithPopup(auth, provider)
+    // Ensure we get the basic info
+    provider.addScope('email') 
+    provider.addScope('profile')
 
-    const ref = doc(db, "users", cred.user.uid)
-    const snap = await getDoc(ref)
+    // ⚡ USE POPUP (Redirect causes issues on some mobile webviews)
+    const cred = await signInWithPopup(auth, provider)
+    
+    const userRef = doc(db, "users", cred.user.uid)
+    const snap = await getDoc(userRef)
 
     if (!snap.exists()) {
-      const newUser: User = {
-        id: cred.user.uid,
-        email: cred.user.email!,
-        name: cred.user.displayName || "Google User",
-        createdAt: new Date().toISOString(),
-        stats: {
-          scansCompleted: 0,
-          quizzesCompleted: 0,
-          challengesCompleted: 0,
-          points: 0,
-          level: 1,
-        },
-        achievements: [],
-        recentActivity: [],
-      }
-
-      await setDoc(ref, {
+      // Create new Google User Profile
+      const newUser = createDefaultUser(cred.user)
+      
+      await setDoc(userRef, {
         ...newUser,
         createdAt: serverTimestamp(),
       })
-
       cachedUser = newUser
     } else {
-      cachedUser = snap.data() as User
+      // Existing user
+      cachedUser = snap.data() as UserProfile
     }
 
     return { success: true }
   } catch (err: any) {
     console.error("GOOGLE SIGN IN ERROR:", err)
+    
+    // Handle "Popup closed by user" gracefully
+    if (err.code === 'auth/popup-closed-by-user') {
+      return { success: false, error: "Login cancelled" }
+    }
+    
     return { success: false, error: err.message }
   }
 }
@@ -173,5 +160,10 @@ export async function signInWithGoogle() {
 /* ================= LOGOUT ================= */
 export async function logout() {
   cachedUser = null
-  await signOut(auth)
+  try {
+    await signOut(auth)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
 }

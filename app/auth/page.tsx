@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { signIn, signUp, signInWithGoogle } from "@/lib/auth"
+// Make sure signInWithGoogle returns the user or an object indicating success
+import { signIn, signUp, signInWithGoogle } from "@/lib/auth" 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Shield, Mail, Lock, User, Loader2, Cpu, CheckCircle } from "lucide-react"
@@ -21,6 +22,34 @@ export default function AuthPage() {
     confirmPassword: "", 
   })
 
+  // ✅ NEW: Handle Google Login Logic properly
+  const handleGoogleLogin = async () => {
+    setError("")
+    setLoading(true)
+    try {
+      // Await the Google Login process
+      const result = await signInWithGoogle()
+      
+      // Check if login was successful (Adjust this check based on what your lib/auth returns)
+      // Usually checking if result exists is enough for Firebase
+      if (result) {
+        router.push("/dashboard") // 👈 FORCE REDIRECT HERE
+      } else {
+        setError("Google Login failed or was cancelled.")
+      }
+    } catch (err: any) {
+      console.error("Google Login Error:", err)
+      // Handle the specific mobile "popup closed" error gracefully
+      if (err.message && err.message.includes("popup-closed-by-user")) {
+        setError("Login cancelled.")
+      } else {
+        setError("Google authentication failed. Please try again.")
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -38,10 +67,8 @@ export default function AuthPage() {
         : await signUp(form.email, form.password, form.name)
 
       if (!res.success) {
-        // ⚡ CLEAN UP ERROR MESSAGES
         let msg = res.error || "Authentication failed"
         
-        // Check for specific Firebase error codes inside the string
         if (msg.includes("auth/invalid-credential") || msg.includes("auth/user-not-found") || msg.includes("auth/wrong-password")) {
            msg = "Invalid email or password"
         } else if (msg.includes("auth/email-already-in-use")) {
@@ -68,21 +95,16 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
       
-      {/* 1. BACKGROUND GRID */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
-      {/* 2. CENTERED FIXED-SIZE CARD */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        // ⚡ FIXED SIZE: h-[580px] fits everything perfectly without scroll
         className="w-full max-w-4xl h-[580px] bg-[#0f141f] rounded-3xl shadow-2xl border border-slate-800 overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10"
       >
         
-        {/* =======================
-            LEFT SIDE: IMAGE
-        ======================= */}
+        {/* LEFT SIDE: IMAGE */}
         <div className="relative hidden md:block h-full">
           <div className="absolute inset-0 bg-slate-900/20 z-10" />
           <img
@@ -104,9 +126,7 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* =======================
-            RIGHT SIDE: COMPACT FORM
-        ======================= */}
+        {/* RIGHT SIDE: FORM */}
         <div className="flex items-center justify-center h-full bg-[#0f141f] p-6 sm:p-8">
           <div className="w-full max-w-sm flex flex-col justify-center">
             
@@ -133,9 +153,7 @@ export default function AuthPage() {
               )}
             </AnimatePresence>
 
-            {/* ⚡ SPACE-Y-3 KEEPS IT TIGHT */}
             <form onSubmit={handleSubmit} className="space-y-3">
-              
               <AnimatePresence mode="popLayout">
                 {mode === "register" && (
                   <motion.div
@@ -146,7 +164,6 @@ export default function AuthPage() {
                   >
                     <div className="relative mb-3">
                       <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                      {/* ⚡ h-10 (40px) Inputs to save space */}
                       <Input
                         placeholder="Codename (Full Name)"
                         value={form.name}
@@ -203,19 +220,14 @@ export default function AuthPage() {
               </AnimatePresence>
 
               <Button
-                className="w-full bg-lime-500 hover:bg-lime-400 text-black font-bold h-10 text-sm mt-1 transition-all hover:shadow-[0_0_20px_rgba(132,204,22,0.3)]"
+                className="w-full bg-lime-500 hover:bg-lime-400 text-black font-bold h-10 text-sm mt-1 transition-all"
                 disabled={loading}
                 type="submit"
               >
-                {loading ? (
-                  <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Processing...</>
-                ) : (
-                  mode === "login" ? "Access Dashboard" : "Create Account"
-                )}
+                {loading ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : (mode === "login" ? "Access Dashboard" : "Create Account")}
               </Button>
             </form>
 
-            {/* Compact Divider */}
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-slate-800" />
@@ -225,10 +237,12 @@ export default function AuthPage() {
               </div>
             </div>
 
+            {/* ⚡ UPDATE: Changed onClick to call handleGoogleLogin */}
             <Button
               variant="outline"
               className="w-full bg-slate-900 border-slate-800 hover:bg-slate-800 text-white h-10 text-sm"
-              onClick={signInWithGoogle}
+              onClick={handleGoogleLogin} 
+              disabled={loading}
             >
               <svg className="mr-2 h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
