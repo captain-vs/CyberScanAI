@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link" // ⚡ Import Link for navigation
 import {
   Globe, FileCheck, Search, ImageIcon, Shield, Hash, Activity,
-  Download, Terminal as TerminalIcon, AlertOctagon, CheckCircle, Bug,
-  Ghost, Eye, Copy, Check, Clock, AlertTriangle, CheckCircle2, XCircle, Cpu
+  Download, Terminal as TerminalIcon, AlertTriangle, CheckCircle2, XCircle, Cpu,
+  Map, ChevronRight, Ghost, Eye, Check, Copy, Bug, Clock
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -19,7 +20,32 @@ import { ScanTerminal, type LogEntry } from "@/components/scan-terminal"
 import AuthGuard from "@/components/auth-guard"
 import { recordActivity } from "@/lib/activity"
 
-// --- TYPES (Updated with aiDetection) ---
+// --- DATASETS FOR SAMPLES ---
+const PHISHING_URLS = [
+  "br-icloud.com.br",
+  "signin.eby.de.zukruygxctzmmqi.civpro.co.za",
+  "http://www.marketingbyinternet.com/mo/e56508df639f6ce7d55c81ee3fcd5ba8",
+  "https://docs.google.com/spreadsheet/viewform?formkey=dGg2Z1lCUHlSdjllTVNRUW50TFIzSkE6MQ",
+  "retajconsultancy.com" 
+]
+
+const SAFE_URLS = [
+  "https://www.google.com",
+  "https://www.brave.com",
+  "https://www.amazon.in",
+  "https://www.flipkart.com/",
+  "https://www.youtube.com/"
+]
+
+const SUSPICIOUS_URLS = [
+  "http://crypto-giveaway-free.xyz",
+  "http://www.pashminaonline.com/pure-pashminas",
+  "http://www.ikenmijnkunst.nl/index.php/exposities/exposities-2006",
+  "http://www.szabadmunkaero.hu/cimoldal.html?start=12",
+  "http://larcadelcarnevale.com/catalogo/palloncini"
+]
+
+// --- TYPES ---
 type ScanResult = {
   target: string
   type: string
@@ -35,7 +61,6 @@ type ScanResult = {
     requestHeaders?: { header: string; value: string }[]
     responseHeaders?: { header: string; value: string }[]
   }
-  // NEW: AI Detection Result
   aiDetection?: {
     isAiGenerated: boolean
     confidenceScore: number
@@ -55,6 +80,10 @@ function ScanContent() {
   const [result, setResult] = useState<ScanResult | null>(null)
   const [logs, setLogs] = useState<LogEntry[]>([])
 
+  // Input State for Auto-Fill
+  const [urlInput, setUrlInput] = useState("")
+  const [ipInput, setIpInput] = useState("")
+
   // Hash State
   const [hashInput, setHashInput] = useState("")
   const [hashType, setHashType] = useState("base64")
@@ -67,7 +96,7 @@ function ScanContent() {
     setLogs(prev => [...prev, { timestamp, type, message }])
   }
 
-  // 📸 NEW: Image Compression Helper (Fixes API Error)
+  // 📸 Image Compression Helper
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -77,7 +106,7 @@ function ScanContent() {
         img.src = event.target?.result as string
         img.onload = () => {
           const canvas = document.createElement('canvas')
-          const MAX_WIDTH = 800 // Resize to safe max width
+          const MAX_WIDTH = 800
           const MAX_HEIGHT = 800
           let width = img.width
           let height = img.height
@@ -98,8 +127,7 @@ function ScanContent() {
           canvas.height = height
           const ctx = canvas.getContext('2d')
           ctx?.drawImage(img, 0, 0, width, height)
-          // Compress to JPEG 0.7 quality (Safe for API)
-          resolve(canvas.toDataURL('image/jpeg', 0.7)) 
+          resolve(canvas.toDataURL('image/jpeg', 0.7))
         }
         img.onerror = (error) => reject(error)
       }
@@ -111,7 +139,7 @@ function ScanContent() {
     setLoading(true)
     setProgress(0)
     setResult(null)
-    setLogs([]) 
+    setLogs([])
     
     addLog("info", `Initializing ${type} scan module...`)
     addLog("info", `Target acquired: ${target}`)
@@ -135,7 +163,6 @@ function ScanContent() {
 
       let bodyPayload: any = { target, type }
 
-      // 📸 UPDATED: Compress Image to Base64
       if (type === "Image" && fileObject) {
         addLog("info", "Compressing image for Vision Analysis...")
         try {
@@ -153,7 +180,6 @@ function ScanContent() {
       })
       
       if (!res.ok) {
-         // Safe error handling
          const errText = await res.text().catch(() => res.statusText)
          throw new Error(`API Error: ${errText.substring(0, 50)}...`)
       }
@@ -182,7 +208,6 @@ function ScanContent() {
           requestHeaders: data.analysis?.requestHeaders || [],
           responseHeaders: data.analysis?.responseHeaders || []
         },
-        // Map AI Detection from API
         aiDetection: data.aiDetection,
         threat: {
           explanation: data.threat?.explanation || data.threatExplanation || "No details provided.",
@@ -208,7 +233,6 @@ function ScanContent() {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     
-    // UPDATED: Handle File Objects
     if (type === "Image") {
       const file = formData.get("file") as File
       if (file.name) performScan(file.name, "Image", file)
@@ -221,6 +245,23 @@ function ScanContent() {
     }
   }
 
+  // 🔥 UPDATED: SAMPLE RANDOMIZER LOGIC
+  const fillSample = (type: "URL" | "IP", category: "Phishing" | "Safe" | "Suspicious") => {
+    if (type === "URL") {
+       let randomUrl = "";
+       if (category === "Phishing") randomUrl = PHISHING_URLS[Math.floor(Math.random() * PHISHING_URLS.length)];
+       else if (category === "Safe") randomUrl = SAFE_URLS[Math.floor(Math.random() * SAFE_URLS.length)];
+       else if (category === "Suspicious") randomUrl = SUSPICIOUS_URLS[Math.floor(Math.random() * SUSPICIOUS_URLS.length)];
+       
+       setUrlInput(randomUrl);
+    }
+    // Simple IP samples for now
+    if (type === "IP") {
+      if (category === "Phishing") setIpInput("185.220.101.44"); // Tor Exit
+      else setIpInput("8.8.8.8"); // Google
+    }
+  }
+
   // Helper to format result into a readable TXT string
   const formatResultToTxt = (res: ScanResult) => {
     let txt = `CYBERSCAN REPORT\n`
@@ -230,7 +271,6 @@ function ScanContent() {
     txt += `Status: ${res.status}\n`
     txt += `Date: ${res.scannedOn}\n`
     txt += `Summary: ${res.description}\n\n`
-
     if (res.aiDetection) {
       txt += `AI GENERATION ANALYSIS\n`
       txt += `----------------------\n`
@@ -238,40 +278,14 @@ function ScanContent() {
       txt += `Confidence: ${res.aiDetection.confidenceScore}%\n`
       txt += `Reasoning: ${res.aiDetection.reasoning}\n\n`
     }
-
     txt += `THREAT ANALYSIS\n`
     txt += `---------------\n`
     txt += `Explanation: ${res.threat.explanation}\n\n`
     txt += `Recommendations: ${res.threat.recommendations}\n\n`
-
-    if (res.analysis) {
-        txt += `ANALYSIS DETAILS\n`
-        txt += `----------------\n`
-        if (res.analysis.ipAddress) txt += `IP Address: ${res.analysis.ipAddress}\n`
-        if (res.analysis.hostname) txt += `Hostname: ${res.analysis.hostname}\n`
-        if (res.analysis.country) txt += `Country: ${res.analysis.country}\n`
-        if (res.analysis.sslCertificate) txt += `SSL Certificate: ${res.analysis.sslCertificate}\n`
-        txt += `\n`
-  
-        if (res.analysis.requestHeaders?.length) {
-          txt += `Request Headers:\n`
-          res.analysis.requestHeaders.forEach(h => txt += `  - ${h.header}: ${h.value}\n`)
-          txt += `\n`
-        }
-        if (res.analysis.responseHeaders?.length) {
-          txt += `Response Headers:\n`
-          res.analysis.responseHeaders.forEach(h => txt += `  - ${h.header}: ${h.value}\n`)
-          txt += `\n`
-        }
-      }
-  
-      if (res.vendors.length > 0) {
-        txt += `VENDOR RESULTS\n`
-        txt += `--------------\n`
-        res.vendors.forEach(v => txt += `  - ${v.name}: ${v.result}\n`)
-      }
-  
-      return txt
+    
+    if (res.analysis.ipAddress) txt += `IP: ${res.analysis.ipAddress}\n`
+    
+    return txt
   }
 
   const handleDownload = () => {
@@ -302,7 +316,6 @@ function ScanContent() {
     } catch { addLog("error", "Hash processing failed.") }
   }
 
-  // --- UI HELPERS ---
   const getStatusColor = (status: string) => {
     switch(status) {
       case "Clean": return "from-emerald-500/20 to-emerald-900/10 border-emerald-500/50 text-emerald-400"
@@ -319,21 +332,32 @@ function ScanContent() {
       
       <div className="container max-w-6xl mx-auto px-4 py-12 relative z-10">
         
-        {/* HERO HEADER */}
-        <div className="text-center mb-12">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="inline-flex items-center justify-center p-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)] mb-6"
-          >
-            <Shield className="h-10 w-10 text-blue-500" />
-          </motion.div>
-          <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter mb-4">
-            CYBER<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">SCAN</span>
-          </h1>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Next-Gen Threat Intelligence Platform. Powered by AI.
-          </p>
+        {/* 🔥 UPDATED HEADER LAYOUT */}
+        <div className="flex flex-col items-center mb-8 relative">
+           {/* 1. CENTERED TITLE */}
+           <div className="text-center mb-6">
+              <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter mb-4">
+                CYBER<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">SCAN</span>
+              </h1>
+              <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+                Next-Gen Threat Intelligence Platform. Powered by AI.
+              </p>
+           </div>
+           
+           {/* 2. RIGHT-ALIGNED ROADMAP BUTTON (BELOW TITLE) */}
+           <div className="w-full flex justify-end px-4">
+               <Link href="/roadmap">
+                  <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-700 rounded-full text-slate-300 hover:text-white hover:border-blue-500 transition-all shadow-lg"
+                  >
+                      <Map className="h-5 w-5 text-blue-500" />
+                      <span className="font-bold text-sm">Learning Roadmap</span>
+                      <ChevronRight className="h-4 w-4 opacity-50" />
+                  </motion.button>
+               </Link>
+           </div>
         </div>
 
         {/* MAIN INTERFACE */}
@@ -359,7 +383,7 @@ function ScanContent() {
             </TabsList>
 
             {/* INPUT MODULES */}
-            <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm shadow-xl">
+            <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm shadow-xl relative overflow-hidden">
               <div className="mb-6 flex items-center gap-2 text-blue-400 font-bold uppercase tracking-wider text-sm">
                 <TerminalIcon className="h-4 w-4" /> 
                 {activeTab} Input Module
@@ -373,15 +397,51 @@ function ScanContent() {
                   exit={{ opacity: 0, x: 10 }}
                 >
                   {activeTab === "url" && (
-                    <form onSubmit={(e) => handleScan(e, "URL")} className="space-y-4">
-                      <Input name="input" placeholder="https://malicious-site.com" className="bg-black/50 border-slate-700 h-12" required disabled={loading} />
-                      <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 font-bold" disabled={loading}>
-                        {loading ? <Activity className="mr-2 h-4 w-4 animate-spin" /> : <Globe className="mr-2 h-4 w-4" />}
-                        INITIATE URL SCAN
-                      </Button>
-                    </form>
+                    <div className="space-y-4">
+                      <form onSubmit={(e) => handleScan(e, "URL")}>
+                        <Input 
+                           name="input" 
+                           placeholder="https://malicious-site.com" 
+                           className="bg-black/50 border-slate-700 h-12" 
+                           required 
+                           disabled={loading}
+                           value={urlInput}
+                           onChange={(e) => setUrlInput(e.target.value)}
+                        />
+                        <Button className="w-full h-12 mt-4 bg-blue-600 hover:bg-blue-700 font-bold" disabled={loading}>
+                          {loading ? <Activity className="mr-2 h-4 w-4 animate-spin" /> : <Globe className="mr-2 h-4 w-4" />}
+                          INITIATE URL SCAN
+                        </Button>
+                      </form>
+                      
+                      {/* 🔥 UPDATED SAMPLE CHIPS */}
+                      <div className="pt-2 flex flex-wrap gap-2 items-center">
+                         <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mr-2">Try Random Samples:</span>
+                         <Badge 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400 transition-colors py-1.5"
+                            onClick={() => fillSample("URL", "Phishing")}
+                         >
+                            🔴 Phishing
+                         </Badge>
+                         <Badge 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-green-500/10 hover:border-green-500/50 hover:text-green-400 transition-colors py-1.5"
+                            onClick={() => fillSample("URL", "Safe")}
+                         >
+                            🟢 Safe Site
+                         </Badge>
+                         <Badge 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-orange-500/10 hover:border-orange-500/50 hover:text-orange-400 transition-colors py-1.5"
+                            onClick={() => fillSample("URL", "Suspicious")}
+                         >
+                            🟠 Suspicious
+                         </Badge>
+                      </div>
+                    </div>
                   )}
-                  {/* ... (File, IP, Image, Hash forms remain the same) ... */}
+
                   {activeTab === "file" && (
                     <form onSubmit={(e) => handleScan(e, "File")} className="space-y-4">
                       <div className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center hover:border-blue-500/50 cursor-pointer transition-colors bg-black/20">
@@ -395,17 +455,49 @@ function ScanContent() {
                         {loading ? <Activity className="mr-2 h-4 w-4 animate-spin" /> : <Bug className="mr-2 h-4 w-4" />}
                         UPLOAD & ANALYZE
                       </Button>
+                      <p className="text-xs text-slate-500 text-center mt-2">
+                        For testing, download the <a href="https://secure.eicar.org/eicar.com" target="_blank" className="text-blue-400 underline">EICAR Test File</a> (Safe Virus).
+                      </p>
                     </form>
                   )}
+
                   {activeTab === "ip" && (
-                    <form onSubmit={(e) => handleScan(e, "IP")} className="space-y-4">
-                      <Input name="input" placeholder="192.168.x.x" className="bg-black/50 border-slate-700 h-12" required disabled={loading} />
-                      <Button className="w-full h-12 bg-purple-600 hover:bg-purple-700 font-bold" disabled={loading}>
-                        {loading ? <Activity className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                        TRACEROUTE & SCAN
-                      </Button>
-                    </form>
+                     <div className="space-y-4">
+                        <form onSubmit={(e) => handleScan(e, "IP")}>
+                          <Input 
+                             name="input" 
+                             placeholder="192.168.x.x" 
+                             className="bg-black/50 border-slate-700 h-12" 
+                             required 
+                             disabled={loading}
+                             value={ipInput}
+                             onChange={(e) => setIpInput(e.target.value)} 
+                          />
+                          <Button className="w-full h-12 mt-4 bg-purple-600 hover:bg-purple-700 font-bold" disabled={loading}>
+                            {loading ? <Activity className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                            TRACEROUTE & SCAN
+                          </Button>
+                        </form>
+                        <div className="pt-2 flex flex-wrap gap-2 items-center">
+                           <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mr-2">Try Samples:</span>
+                           <Badge 
+                              variant="outline" 
+                              className="cursor-pointer hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400 transition-colors py-1.5"
+                              onClick={() => fillSample("IP", "Phishing")}
+                           >
+                              🔴 Tor Exit Node
+                           </Badge>
+                           <Badge 
+                              variant="outline" 
+                              className="cursor-pointer hover:bg-green-500/10 hover:border-green-500/50 hover:text-green-400 transition-colors py-1.5"
+                              onClick={() => fillSample("IP", "Safe")}
+                           >
+                              🟢 Google DNS
+                           </Badge>
+                        </div>
+                     </div>
                   )}
+
                   {activeTab === "image" && (
                     <form onSubmit={(e) => handleScan(e, "Image")} className="space-y-4">
                       <Input name="file" type="file" accept="image/*" className="bg-black/50 border-slate-700" required disabled={loading} />
@@ -415,6 +507,7 @@ function ScanContent() {
                       </Button>
                     </form>
                   )}
+
                   {activeTab === "hash" && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -466,7 +559,7 @@ function ScanContent() {
               </motion.div>
             )}
 
-            {/* RESULTS DISPLAY (DETAILED UI) */}
+            {/* RESULTS DISPLAY */}
             {!loading && result && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -482,20 +575,20 @@ function ScanContent() {
                           {result.status}
                         </Badge>
                       </h2>
-                       <p className="text-lg font-medium opacity-90">{result.description}</p>
+                        <p className="text-lg font-medium opacity-90">{result.description}</p>
                     </div>
                     <Button variant="outline" size="sm" onClick={handleDownload} className="bg-black/20 border-white/20 hover:bg-white/10 text-white shrink-0">
                       <Download className="mr-2 h-4 w-4" /> Download Report
                     </Button>
                   </div>
-                   <div className="mt-4 flex items-center gap-2 text-sm opacity-70">
-                      <Clock className="h-4 w-4" /> Scanned on: {result.scannedOn}
-                   </div>
+                    <div className="mt-4 flex items-center gap-2 text-sm opacity-70">
+                       <Clock className="h-4 w-4" /> Scanned on: {result.scannedOn}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
-                  {/* NEW: AI IMAGE DETECTION CARD (Conditional) */}
+                  {/* AI IMAGE DETECTION CARD */}
                   {result.aiDetection && (
                     <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2 relative overflow-hidden">
                       <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pink-500 to-purple-600" />
@@ -535,76 +628,7 @@ function ScanContent() {
                     </Card>
                   )}
 
-                  {/* 2. ANALYSIS DETAILS */}
-                  <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg text-white">Analysis Details</CardTitle>
-                      <CardDescription>Detailed information gathered during the scan.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="text-sm font-medium text-slate-400 mb-1">IP Address</h4>
-                          <p className="text-white font-mono">{result.analysis.ipAddress || "N/A"}</p>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-slate-400 mb-1">Hostname</h4>
-                          <p className="text-white font-mono">{result.analysis.hostname || "N/A"}</p>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-slate-400 mb-1">Country</h4>
-                          <p className="text-white">{result.analysis.country || "N/A"}</p>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-slate-400 mb-1">SSL Certificate</h4>
-                          <p className="text-white flex items-center gap-2">
-                            {result.analysis.sslCertificate && result.analysis.sslCertificate.includes("Valid") ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <AlertTriangle className="h-4 w-4 text-yellow-500" />}
-                            {result.analysis.sslCertificate || "N/A"}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* 3. REQUEST HEADERS */}
-                  {result.analysis.requestHeaders && result.analysis.requestHeaders.length > 0 && (
-                    <Card className="bg-[#0b0f17] border-slate-800 shadow-lg">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg text-white">Request Headers</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2 font-mono text-xs max-h-40 overflow-y-auto">
-                          {result.analysis.requestHeaders.map((h, i) => (
-                            <div key={i} className="flex flex-col border-b border-slate-800/50 pb-2 last:border-0">
-                              <span className="text-slate-500 font-semibold">{h.header}</span>
-                              <span className="text-slate-300 break-all">{h.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* 4. RESPONSE HEADERS */}
-                  {result.analysis.responseHeaders && result.analysis.responseHeaders.length > 0 && (
-                    <Card className="bg-[#0b0f17] border-slate-800 shadow-lg">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg text-white">Response Headers</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2 font-mono text-xs max-h-40 overflow-y-auto">
-                          {result.analysis.responseHeaders.map((h, i) => (
-                            <div key={i} className="flex flex-col border-b border-slate-800/50 pb-2 last:border-0">
-                              <span className="text-slate-500 font-semibold">{h.header}</span>
-                              <span className="text-slate-300 break-all">{h.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* 5. THREAT EXPLANATION */}
+                  {/* THREAT EXPLANATION */}
                   <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg text-white flex items-center gap-2"><Ghost className="h-5 w-5 text-purple-500"/> Threat Explanation & Recommendations</CardTitle>
@@ -616,33 +640,6 @@ function ScanContent() {
                       <div>
                         <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2"><Shield className="h-5 w-5 text-blue-400"/> Recommended Actions</h4>
                         <p className="text-slate-300">{result.threat.recommendations}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* 6. DETECTION DETAILS (VENDORS) */}
-                  <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg text-white">Detection Details</CardTitle>
-                      <CardDescription>Results from third-party security vendors.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {result.vendors.map((v, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-slate-900/50 border border-slate-800">
-                            <span className="font-medium text-slate-300">{v.name}</span>
-                            <div className="flex items-center gap-2">
-                              {v.result === "Clean" ? (
-                                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                              ) : (
-                                <XCircle className="h-5 w-5 text-red-500" />
-                              )}
-                              <span className={`text-sm font-bold ${v.result === "Clean" ? "text-green-400" : "text-red-400"}`}>
-                                {v.result}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
                       </div>
                     </CardContent>
                   </Card>

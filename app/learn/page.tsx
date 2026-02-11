@@ -36,6 +36,17 @@ const tutorials: ContentItem[] = [
     difficulty: "Beginner",
     url: "/learn/lab/module0" // ✅ Internal Link
   },
+    
+  {
+  id: "terminal-game",
+  title: "Terminal Breach Protocol",
+  description: "Rhythm Game: Type commands against the clock to bypass the firewall.", 
+  category: "Mini-Game", 
+  readTime: "~2 min",
+  author: "System Root",
+  difficulty: "Intermediate",
+  url: "/learn/lab/module1" 
+},
   {
     id: "t1",
     title: "Complete Guide to 2FA & Auth Security",

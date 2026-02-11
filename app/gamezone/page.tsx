@@ -89,6 +89,7 @@ const quizzes = [
     difficulty: "Advanced",
     image: "https://www.cloudavize.com/wp-content/uploads/2025/01/Cyber-Threats.webp",
   },
+
 ]
 
 // ⚡ OPTIMIZED COUNT UP
