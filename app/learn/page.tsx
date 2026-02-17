@@ -39,7 +39,7 @@ const tutorials: ContentItem[] = [
     
   {
   id: "terminal-game",
-  title: "Terminal Breach Protocol",
+  title: "Game:Terminal Breach Protocol",
   description: "Rhythm Game: Type commands against the clock to bypass the firewall.", 
   category: "Mini-Game", 
   readTime: "~2 min",
