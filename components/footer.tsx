@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Shield, Github, Twitter, Linkedin, Heart } from "lucide-react"
+import { Shield, Github, Twitter, Linkedin, Heart, Download, Smartphone } from "lucide-react"
+import { Button } from "react-day-picker"
 
 export function Footer() {
   const pathname = usePathname()
@@ -106,6 +107,16 @@ export function Footer() {
             <p className="mt-6 text-xs text-slate-500">
               System Status: <span className="text-lime-500 font-medium">● Operational</span>
             </p>
+            <h3 className="text-white font-bold">Get the App</h3>
+          <p className="text-sm">Secure your mobile experience.</p>
+          
+          <a href="/cyberscan.apk" download>
+            <Button className="rounded-lg bg-dark-600 hover:bg-lime-500 text-white font-bold flex items-center gap-1">
+              <Smartphone className="h-4 w-4" />
+              Download APK
+              <Download className="h-4 w-4 ml-auto opacity-50" />
+            </Button>
+          </a>
           </div>
 
         </div>
