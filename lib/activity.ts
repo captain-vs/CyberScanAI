@@ -12,7 +12,7 @@ import {
   runTransaction
 } from "firebase/firestore"
 
-export type ActivityType = "scan" | "quiz" | "challenge" | "lab"
+export type ActivityType = "scan" | "quiz" | "challenge" | "lab" | "game"
 
 interface RecordActivityInput {
   type: ActivityType
