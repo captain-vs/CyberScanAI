@@ -57,7 +57,7 @@ export const metadata: Metadata = {
 
   // 5. Search Engine Verification (Paste your codes here later)
   verification: {
-    google: "YOUR_GOOGLE_VERIFICATION_CODE", 
+    google: "ob1uQivcBWJLBn8m46x3zjZfUnPdZFCqwOoV0lC1vsU", 
     yandex: "yandex-verification-code",
   },
 }
