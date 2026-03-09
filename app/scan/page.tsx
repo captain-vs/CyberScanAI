@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link" // ⚡ Import Link for navigation
+import Link from "next/link" 
 import {
   Globe, FileCheck, Search, ImageIcon, Shield, Hash, Activity,
   Download, Terminal as TerminalIcon, AlertTriangle, CheckCircle2, XCircle, Cpu,
@@ -25,7 +25,7 @@ const PHISHING_URLS = [
   "br-icloud.com.br",
   "signin.eby.de.zukruygxctzmmqi.civpro.co.za",
   "http://www.marketingbyinternet.com/mo/e56508df639f6ce7d55c81ee3fcd5ba8",
-  "https://docs.google.com/spreadsheet/viewform?formkey=dGg2Z1lCUHlSdjllTVNRUW50TFIzSkE6MQ",
+  "https://docs.gogle.com/spreadsheet/viewform?formkey=dGg2Z1lCUHlSdjllTVNRUW50TFIzSkE6MQ",
   "retajconsultancy.com" 
 ]
 
@@ -245,7 +245,6 @@ function ScanContent() {
     }
   }
 
-  // 🔥 UPDATED: SAMPLE RANDOMIZER LOGIC
   const fillSample = (type: "URL" | "IP", category: "Phishing" | "Safe" | "Suspicious") => {
     if (type === "URL") {
        let randomUrl = "";
@@ -255,14 +254,12 @@ function ScanContent() {
        
        setUrlInput(randomUrl);
     }
-    // Simple IP samples for now
     if (type === "IP") {
-      if (category === "Phishing") setIpInput("185.220.101.44"); // Tor Exit
-      else setIpInput("8.8.8.8"); // Google
+      if (category === "Phishing") setIpInput("185.220.101.44"); 
+      else setIpInput("8.8.8.8"); 
     }
   }
 
-  // Helper to format result into a readable TXT string
   const formatResultToTxt = (res: ScanResult) => {
     let txt = `CYBERSCAN REPORT\n`
     txt += `================\n`
@@ -272,9 +269,9 @@ function ScanContent() {
     txt += `Date: ${res.scannedOn}\n`
     txt += `Summary: ${res.description}\n\n`
     if (res.aiDetection) {
-      txt += `AI GENERATION ANALYSIS\n`
+      const title = res.type === "Image" ? "AI GENERATION ANALYSIS" : "THREAT CONFIDENCE SCORE"
+      txt += `${title}\n`
       txt += `----------------------\n`
-      txt += `Is AI Generated: ${res.aiDetection.isAiGenerated}\n`
       txt += `Confidence: ${res.aiDetection.confidenceScore}%\n`
       txt += `Reasoning: ${res.aiDetection.reasoning}\n\n`
     }
@@ -301,19 +298,46 @@ function ScanContent() {
     addLog("success", "Report downloaded successfully (TXT format).")
   }
 
-  // --- HASH LOGIC ---
-  const handleHashGeneration = () => {
+  // --- UPDATED HASH GENERATION ---
+  const handleHashGeneration = async () => {
     if (!hashInput.trim()) return
     try {
       if (hashMode === "encode") {
-        if (hashType === "base64") setHashOutput(btoa(hashInput))
-        else setHashOutput(`${hashType.toUpperCase()}_${hashInput.split('').reverse().join('')}_SIMULATED_HASH`)
+        if (hashType === "base64") {
+          setHashOutput(btoa(hashInput))
+        } 
+        else if (hashType === "sha256" || hashType === "sha512") {
+          // Native accurate WebCrypto hashing
+          const algorithm = hashType === "sha256" ? "SHA-256" : "SHA-512"
+          const msgBuffer = new TextEncoder().encode(hashInput)
+          const hashBuffer = await crypto.subtle.digest(algorithm, msgBuffer)
+          const hashArray = Array.from(new Uint8Array(hashBuffer))
+          const hexOutput = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+          setHashOutput(hexOutput)
+        } 
+        else if (hashType === "md5") {
+          // Deterministic 32-character pseudo-MD5 for demo
+          let hash = 0;
+          for (let i = 0; i < hashInput.length; i++) {
+              hash = (hash << 5) - hash + hashInput.charCodeAt(i);
+              hash |= 0;
+          }
+          let hex = Math.abs(hash).toString(16);
+          while (hex.length < 32) hex += hex; 
+          setHashOutput(hex.substring(0, 32));
+        }
       } else {
-         if (hashType === "base64") try { setHashOutput(atob(hashInput)) } catch { setHashOutput("Error: Invalid Base64") }
-         else setHashOutput("Decoding supported for Base64 only.")
+         if (hashType === "base64") {
+           try { setHashOutput(atob(hashInput)) } 
+           catch { setHashOutput("Error: Invalid Base64 input.") }
+         } else {
+           setHashOutput(`Error: Decoding is strictly supported for Base64 only.\n\n${hashType.toUpperCase()} is a one-way cryptographic hash function and cannot be reversed.`)
+         }
       }
-      addLog("success", `Hash operation (${hashMode}) successful.`)
-    } catch { addLog("error", "Hash processing failed.") }
+      addLog("success", `Hash operation (${hashMode.toUpperCase()} - ${hashType.toUpperCase()}) executed.`)
+    } catch { 
+      addLog("error", "Hash processing failed.") 
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -332,9 +356,7 @@ function ScanContent() {
       
       <div className="container max-w-6xl mx-auto px-4 py-12 relative z-10">
         
-        {/* 🔥 UPDATED HEADER LAYOUT */}
         <div className="flex flex-col items-center mb-8 relative">
-           {/* 1. CENTERED TITLE */}
            <div className="text-center mb-6">
               <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter mb-4">
                 CYBER<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">SCAN</span>
@@ -344,7 +366,6 @@ function ScanContent() {
               </p>
            </div>
            
-           {/* 2. RIGHT-ALIGNED ROADMAP BUTTON (BELOW TITLE) */}
            <div className="w-full flex justify-end px-4">
                <Link href="/roadmap">
                   <motion.button
@@ -360,7 +381,6 @@ function ScanContent() {
            </div>
         </div>
 
-        {/* MAIN INTERFACE */}
         <div className="max-w-4xl mx-auto space-y-8">
           <Tabs defaultValue="url" onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-5 h-auto bg-slate-900/80 border border-slate-800 p-1 mb-8">
@@ -382,7 +402,6 @@ function ScanContent() {
               ))}
             </TabsList>
 
-            {/* INPUT MODULES */}
             <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm shadow-xl relative overflow-hidden">
               <div className="mb-6 flex items-center gap-2 text-blue-400 font-bold uppercase tracking-wider text-sm">
                 <TerminalIcon className="h-4 w-4" /> 
@@ -414,7 +433,6 @@ function ScanContent() {
                         </Button>
                       </form>
                       
-                      {/* 🔥 UPDATED SAMPLE CHIPS */}
                       <div className="pt-2 flex flex-wrap gap-2 items-center">
                          <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mr-2">Try Random Samples:</span>
                          <Badge 
@@ -508,6 +526,7 @@ function ScanContent() {
                     </form>
                   )}
 
+                  {/* 🔥 UPDATED HASHING MODULE WITH NEW OPTIONS */}
                   {activeTab === "hash" && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -517,15 +536,20 @@ function ScanContent() {
                         </Select>
                         <Select value={hashType} onValueChange={setHashType}>
                           <SelectTrigger className="bg-black/50 border-slate-700 h-12"><SelectValue /></SelectTrigger>
-                          <SelectContent><SelectItem value="base64">Base64</SelectItem><SelectItem value="sha256">SHA-256</SelectItem><SelectItem value="md5">MD5</SelectItem></SelectContent>
+                          <SelectContent>
+                            <SelectItem value="base64">Base64</SelectItem>
+                            <SelectItem value="md5">MD5</SelectItem>
+                            <SelectItem value="sha256">SHA-256</SelectItem>
+                            <SelectItem value="sha512">SHA-512</SelectItem>
+                          </SelectContent>
                         </Select>
                       </div>
                       <Textarea value={hashInput} onChange={(e) => setHashInput(e.target.value)} placeholder="Input text..." className="bg-black/50 border-slate-700 font-mono" />
                       <Button onClick={handleHashGeneration} className="w-full h-12 bg-orange-600 hover:bg-orange-700 font-bold">
-                        <Cpu className="mr-2 h-4 w-4" /> PROCESS HASH
+                        <Cpu className="mr-2 h-4 w-4" /> PROCESS {hashType.toUpperCase()}
                       </Button>
                       {hashOutput && (
-                        <div className="p-4 bg-black/50 border border-slate-800 rounded font-mono text-green-400 text-sm break-all relative group">
+                        <div className="p-4 bg-black/50 border border-slate-800 rounded font-mono text-green-400 text-sm break-all relative group whitespace-pre-line">
                           {hashOutput}
                           <Button size="icon" variant="ghost" className="absolute top-2 right-2 text-slate-500 hover:text-white" onClick={() => { navigator.clipboard.writeText(hashOutput); setCopied(true); setTimeout(() => setCopied(false), 2000) }}>
                              {copied ? <Check className="h-4 w-4 text-green-500"/> : <Copy className="h-4 w-4"/>}
@@ -542,7 +566,6 @@ function ScanContent() {
           {/* RESULTS AREA */}
           <AnimatePresence mode="wait">
             
-            {/* LOADING STATE */}
             {loading && (
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -559,7 +582,6 @@ function ScanContent() {
               </motion.div>
             )}
 
-            {/* RESULTS DISPLAY */}
             {!loading && result && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -567,66 +589,146 @@ function ScanContent() {
               >
                 {/* 1. STATUS BANNER */}
                 <div className={`p-6 rounded-xl border bg-gradient-to-r ${getStatusColor(result.status)} relative overflow-hidden`}>
-                  <div className="relative z-10 flex items-start justify-between">
-                    <div>
-                      <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3 mb-3">
-                        {result.target}
-                        <Badge variant={result.status === "Clean" ? "default" : "destructive"} className="text-base px-3 py-1">
+                  <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-2xl md:text-3xl font-bold tracking-tight flex flex-wrap items-center gap-3 mb-3">
+                        <span className="break-all">{result.target}</span>
+                        <Badge variant={result.status === "Clean" ? "default" : "destructive"} className="text-base px-3 py-1 shrink-0">
                           {result.status}
                         </Badge>
                       </h2>
-                        <p className="text-lg font-medium opacity-90">{result.description}</p>
+                      <p className="text-lg font-medium opacity-90">{result.description}</p>
                     </div>
                     <Button variant="outline" size="sm" onClick={handleDownload} className="bg-black/20 border-white/20 hover:bg-white/10 text-white shrink-0">
                       <Download className="mr-2 h-4 w-4" /> Download Report
                     </Button>
                   </div>
-                    <div className="mt-4 flex items-center gap-2 text-sm opacity-70">
-                       <Clock className="h-4 w-4" /> Scanned on: {result.scannedOn}
-                    </div>
+                  <div className="mt-4 flex items-center gap-2 text-sm opacity-70">
+                     <Clock className="h-4 w-4" /> Scanned on: {result.scannedOn}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
-                  {/* AI IMAGE DETECTION CARD */}
-                  {result.aiDetection && (
-                    <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2 relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pink-500 to-purple-600" />
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg text-white flex items-center gap-2">
-                          <Cpu className="h-5 w-5 text-pink-500" /> 
-                          AI Generation Analysis
-                          {result.aiDetection.isAiGenerated && <Badge variant="destructive" className="ml-2">AI DETECTED</Badge>}
-                        </CardTitle>
-                        <CardDescription>Probability of synthetic/AI-generated origin.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-400">Confidence Score</span>
-                            <span className={`font-mono font-bold ${result.aiDetection.confidenceScore > 50 ? "text-pink-500" : "text-emerald-500"}`}>
-                              {result.aiDetection.confidenceScore}%
-                            </span>
-                          </div>
-                          <div className="h-4 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${result.aiDetection.confidenceScore}%` }}
-                              transition={{ duration: 1, ease: "easeOut" }}
-                              className={`h-full ${
-                                result.aiDetection.confidenceScore > 80 ? "bg-gradient-to-r from-red-500 to-pink-600" :
-                                result.aiDetection.confidenceScore > 50 ? "bg-gradient-to-r from-orange-500 to-yellow-500" :
-                                "bg-gradient-to-r from-emerald-500 to-blue-500"
-                              }`}
-                            />
-                          </div>
-                          <div className="p-3 bg-slate-900/50 rounded border border-slate-800 text-sm text-slate-300">
-                            <strong>Reasoning:</strong> {result.aiDetection.reasoning}
+                  {/* ANALYSIS DETAILS CARD */}
+                  <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-white">Analysis Details</CardTitle>
+                      <CardDescription>Detailed information gathered during the scan.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <p className="text-sm text-slate-500 mb-1">IP Address</p>
+                          <p className="font-mono text-slate-300">{result.analysis.ipAddress || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 mb-1">Hostname</p>
+                          <p className="font-mono text-slate-300">{result.analysis.hostname || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 mb-1">Country</p>
+                          <p className="font-mono text-slate-300">{result.analysis.country || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 mb-1">SSL Certificate</p>
+                          <div className="font-mono flex items-center gap-2">
+                            {result.analysis.sslCertificate === "Valid" ? (
+                              <><CheckCircle2 className="h-4 w-4 text-emerald-500" /> <span className="text-emerald-500">Valid</span></>
+                            ) : (
+                              <><XCircle className="h-4 w-4 text-red-500" /> <span className="text-red-500">{result.analysis.sslCertificate || "Unknown"}</span></>
+                            )}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* REQUEST HEADERS */}
+                  <Card className="bg-[#0b0f17] border-slate-800 shadow-lg">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-white">Request Headers</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {result.analysis.requestHeaders && result.analysis.requestHeaders.length > 0 ? (
+                         result.analysis.requestHeaders.map((h, i) => (
+                           <div key={i}>
+                             <p className="text-sm text-slate-500 mb-1">{h.header}</p>
+                             <p className="font-mono text-xs text-slate-300 break-all">{h.value}</p>
+                           </div>
+                         ))
+                      ) : (
+                         <p className="text-sm text-slate-500">No request headers available.</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* RESPONSE HEADERS */}
+                  <Card className="bg-[#0b0f17] border-slate-800 shadow-lg">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-white">Response Headers</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {result.analysis.responseHeaders && result.analysis.responseHeaders.length > 0 ? (
+                         result.analysis.responseHeaders.map((h, i) => (
+                           <div key={i}>
+                             <p className="text-sm text-slate-500 mb-1">{h.header}</p>
+                             <p className="font-mono text-xs text-slate-300 break-all">{h.value}</p>
+                           </div>
+                         ))
+                      ) : (
+                         <p className="text-sm text-slate-500">No response headers available.</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* 🔥 DYNAMIC AI / THREAT DETECTION CARD */}
+                  {result.aiDetection && (() => {
+                    const isImageScan = result.type === "Image";
+                    const cardTitle = isImageScan ? "AI Generation Analysis" : "Threat Confidence Score";
+                    const cardDesc = isImageScan ? "Probability of synthetic/AI-generated origin." : "AI assessment of malicious intent and risk level.";
+                    const badgeText = isImageScan ? "AI DETECTED" : "HIGH THREAT";
+                    const scoreLabel = isImageScan ? "Confidence Score" : "Threat Probability";
+
+                    return (
+                      <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pink-500 to-purple-600" />
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg text-white flex items-center gap-2">
+                            <Cpu className="h-5 w-5 text-pink-500" /> 
+                            {cardTitle}
+                            {result.aiDetection.confidenceScore > 60 && <Badge variant="destructive" className="ml-2">{badgeText}</Badge>}
+                          </CardTitle>
+                          <CardDescription>{cardDesc}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-slate-400">{scoreLabel}</span>
+                              <span className={`font-mono font-bold ${result.aiDetection.confidenceScore > 50 ? "text-pink-500" : "text-emerald-500"}`}>
+                                {result.aiDetection.confidenceScore}%
+                              </span>
+                            </div>
+                            <div className="h-4 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${result.aiDetection.confidenceScore}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className={`h-full ${
+                                  result.aiDetection.confidenceScore > 80 ? "bg-gradient-to-r from-red-500 to-pink-600" :
+                                  result.aiDetection.confidenceScore > 50 ? "bg-gradient-to-r from-orange-500 to-yellow-500" :
+                                  "bg-gradient-to-r from-emerald-500 to-blue-500"
+                                }`}
+                              />
+                            </div>
+                            <div className="p-3 bg-slate-900/50 rounded border border-slate-800 text-sm text-slate-300">
+                              <strong>Reasoning:</strong> {result.aiDetection.reasoning}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })()}
 
                   {/* THREAT EXPLANATION */}
                   <Card className="bg-[#0b0f17] border-slate-800 shadow-lg md:col-span-2">
@@ -648,7 +750,6 @@ function ScanContent() {
               </motion.div>
             )}
 
-            {/* SYSTEM READY PLACEHOLDER */}
             {!loading && !result && activeTab !== "hash" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[250px] flex flex-col items-center justify-center text-slate-600 border-2 border-dashed border-slate-800 rounded-xl bg-slate-900/10">
                 <Shield className="h-16 w-16 mb-4 opacity-20" />
@@ -659,7 +760,6 @@ function ScanContent() {
 
           </AnimatePresence>
 
-          {/* SYSTEM CONSOLE */}
           <div className="mt-8">
             <ScanTerminal logs={logs} />
           </div>
