@@ -239,10 +239,10 @@ export function Navigation() {
         ) : (
           <div className="flex items-center gap-2">
             <Button variant="ghost" asChild>
-              <Link href="/auth">Sign In</Link>
+              <Link href="/auth?mode=login">Sign In</Link>
             </Button>
             <Button asChild>
-              <Link href="/auth">Sign Up</Link>
+              <Link href="/auth?mode=register">Sign Up</Link>
             </Button>
           </div>
         )}

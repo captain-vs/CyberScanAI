@@ -1,19 +1,24 @@
 "use client"
 
-import { useState } from "react"
-// Make sure signInWithGoogle returns the user or an object indicating success
+import { useState, useEffect, Suspense } from "react"
 import { signIn, signUp, signInWithGoogle } from "@/lib/auth" 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Shield, Mail, Lock, User, Loader2, Cpu, CheckCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Shield, Mail, Lock, User, Loader2, Cpu, CheckCircle, Eye, EyeOff } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 
-export default function AuthPage() {
+// --- EXTRACTED MAIN FORM COMPONENT ---
+function AuthFormContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams() // Reads the ?mode= part of the URL
+  
   const [mode, setMode] = useState<"login" | "register">("login")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const router = useRouter()
+  
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const [form, setForm] = useState({
     name: "",
@@ -22,24 +27,28 @@ export default function AuthPage() {
     confirmPassword: "", 
   })
 
-  // ✅ NEW: Handle Google Login Logic properly
+  // ✅ NEW: Listen for URL changes and update the mode instantly
+  useEffect(() => {
+    const urlMode = searchParams.get("mode")
+    if (urlMode === "register") {
+      setMode("register")
+    } else if (urlMode === "login") {
+      setMode("login")
+    }
+  }, [searchParams])
+
   const handleGoogleLogin = async () => {
     setError("")
     setLoading(true)
     try {
-      // Await the Google Login process
       const result = await signInWithGoogle()
-      
-      // Check if login was successful (Adjust this check based on what your lib/auth returns)
-      // Usually checking if result exists is enough for Firebase
       if (result) {
-        router.push("/dashboard") // 👈 FORCE REDIRECT HERE
+        router.push("/dashboard") 
       } else {
         setError("Google Login failed or was cancelled.")
       }
     } catch (err: any) {
       console.error("Google Login Error:", err)
-      // Handle the specific mobile "popup closed" error gracefully
       if (err.message && err.message.includes("popup-closed-by-user")) {
         setError("Login cancelled.")
       } else {
@@ -55,10 +64,17 @@ export default function AuthPage() {
     setError("")
     setLoading(true)
 
-    if (mode === "register" && form.password !== form.confirmPassword) {
-      setError("Passwords do not match")
-      setLoading(false)
-      return
+    if (mode === "register") {
+      if (form.password.length < 6) {
+        setError("Password must be at least 6 characters")
+        setLoading(false)
+        return
+      }
+      if (form.password !== form.confirmPassword) {
+        setError("Passwords do not match")
+        setLoading(false)
+        return
+      }
     }
 
     try {
@@ -190,11 +206,18 @@ export default function AuthPage() {
                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                 <Input
                   placeholder="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="pl-9 bg-slate-950/50 border-slate-800 text-white focus:border-lime-500/50 h-10 text-sm"
+                  className="pl-9 pr-10 bg-slate-950/50 border-slate-800 text-white focus:border-lime-500/50 h-10 text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 focus:outline-none transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
 
               <AnimatePresence mode="popLayout">
@@ -209,11 +232,18 @@ export default function AuthPage() {
                       <CheckCircle className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                       <Input
                         placeholder="Confirm Password"
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         value={form.confirmPassword}
                         onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                        className="pl-9 bg-slate-950/50 border-slate-800 text-white focus:border-lime-500/50 h-10 text-sm"
+                        className="pl-9 pr-10 bg-slate-950/50 border-slate-800 text-white focus:border-lime-500/50 h-10 text-sm"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 focus:outline-none transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                   </motion.div>
                 )}
@@ -237,7 +267,6 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {/* ⚡ UPDATE: Changed onClick to call handleGoogleLogin */}
             <Button
               variant="outline"
               className="w-full bg-slate-900 border-slate-800 hover:bg-slate-800 text-white h-10 text-sm"
@@ -257,6 +286,8 @@ export default function AuthPage() {
                   setMode(mode === "login" ? "register" : "login")
                   setError("")
                   setForm({ name: "", email: "", password: "", confirmPassword: "" })
+                  setShowPassword(false)
+                  setShowConfirmPassword(false)
                 }}
                 className="text-lime-400 hover:text-lime-300 font-bold hover:underline transition-all ml-1"
               >
@@ -269,5 +300,19 @@ export default function AuthPage() {
 
       </motion.div>
     </div>
+  )
+}
+
+// --- MAIN EXPORT WITH SUSPENSE BOUNDARY ---
+export default function AuthPage() {
+  return (
+    // Suspense is required by Next.js when using useSearchParams()
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-lime-500 animate-spin" />
+      </div>
+    }>
+      <AuthFormContent />
+    </Suspense>
   )
 }

@@ -94,13 +94,13 @@ export default function Home() {
               
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                 <Button size="lg" asChild className="text-lg bg-lime-500 hover:bg-lime-400 text-black font-bold h-14 px-8 rounded-xl shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_30px_rgba(132,204,22,0.5)] transition-all">
-                  <Link href="/auth">
+                  <Link href="/auth?mode=register">
                     <Shield className="mr-2 h-5 w-5" />
                     Initialize System
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild className="text-lg bg-slate-900/50 border-slate-700 text-white hover:bg-slate-800 hover:text-lime-400 h-14 px-8 rounded-xl">
-                  <Link href="/auth">Login Access</Link>
+                  <Link href="/auth?mode=login">Login Access</Link>
                 </Button>
               </div>
             </motion.div>
@@ -247,7 +247,7 @@ export default function Home() {
                 Join the network. Secure your future. Become an elite cybersecurity operative today.
               </p>
               <Button size="lg" asChild className="bg-lime-500 hover:bg-lime-400 text-black font-bold h-12 px-8 text-lg">
-                <Link href="/auth">
+                <Link href="/auth?mode=register">
                   Initialize Account <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>

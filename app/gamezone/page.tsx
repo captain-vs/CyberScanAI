@@ -97,13 +97,17 @@ function CountUp({ value }: { value: number }) {
   const [count, setCount] = useState(0)
   
   useEffect(() => {
-    if (value <= 20) {
-      setCount(value)
+
+    // Catch undefined or NaN values and force them to 0
+    const safeValue = Number(value) || 0
+
+    if (safeValue <= 20) {
+      setCount(safeValue)
       return
     }
 
     let start = 0
-    const end = value
+    const end = safeValue
     if (start === end) return
     
     const duration = 800 
