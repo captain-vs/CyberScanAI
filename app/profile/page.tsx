@@ -18,7 +18,13 @@ import {
   ArrowLeft,
   Trash2,
   AlertTriangle,
-  LogOut
+  LogOut,
+  // ✅ ADDED NEW ICONS FOR PROFILE LINKS
+  Github,
+  Twitter,
+  Linkedin,
+  Briefcase,
+  Code
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -70,8 +76,22 @@ const achievementsList: Achievement[] = [
   { id: "a6", title: "Top 100", description: "Reach top 100 on the leaderboard", icon: "👑", unlocked: false, progress: 142, maxProgress: 100 },
 ]
 
+// ✅ EXPANDED COUNTRY LIST
 const COUNTRIES = [
-  "India", "United States", "United Kingdom", "Canada", "Australia", "Germany", "Other",
+  "Argentina", "Australia", "Brazil", "Canada", "China", "France", 
+  "Germany", "India", "Indonesia", "Italy", "Japan", "Mexico", 
+  "Netherlands", "New Zealand", "Nigeria", "Philippines", "Singapore", 
+  "South Africa", "South Korea", "Spain", "Sweden", "Switzerland", 
+  "United Kingdom", "United States", "Other"
+]
+
+// ✅ NEW PROFILE DROPDOWN OPTIONS
+const SPECIALIZATIONS = [
+  "Web Security", "Network Defense", "OSINT", "Malware Analysis", "Cryptography", "Cloud Security", "General / Beginner"
+]
+
+const EXPERIENCE_LEVELS = [
+  "Novice", "Beginner", "Intermediate", "Advanced", "Expert"
 ]
 
 function formatDate(dateInput: any) {
@@ -96,9 +116,18 @@ function ProfileContent() {
   const [editing, setEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   
+  // ✅ NEW STATE VARIABLES FOR EDITING
   const [name, setName] = useState("")
   const [country, setCountry] = useState("")
+  const [bio, setBio] = useState("")
+  const [specialization, setSpecialization] = useState("")
+  const [experienceLevel, setExperienceLevel] = useState("")
+  const [github, setGithub] = useState("")
+  const [twitter, setTwitter] = useState("")
+  const [linkedin, setLinkedin] = useState("")
+  
   const [rank, setRank] = useState<number | string>("-")
+  
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
@@ -127,8 +156,16 @@ function ProfileContent() {
           }
 
           setUser({ ...data, stats: currentStats })
+          
+          // ✅ LOAD DATA INTO EDIT STATE
           setName(data.name || "")
           setCountry(data.country || "") 
+          setBio(data.bio || "")
+          setSpecialization(data.specialization || "")
+          setExperienceLevel(data.experienceLevel || "")
+          setGithub(data.github || "")
+          setTwitter(data.twitter || "")
+          setLinkedin(data.linkedin || "")
         }
         setLoading(false)
       })
@@ -142,12 +179,11 @@ function ProfileContent() {
       })
       
       const rankQuery = query(collection(db, "users"), orderBy("stats.points", "desc"))
-const unsubRank = onSnapshot(rankQuery, (snapshot) => {
-  const allUsers = snapshot.docs.map(d => d.id)
-  const myIndex = allUsers.indexOf(currentUser.uid)
-  // If found, rank is index + 1. Otherwise "-"
-  setRank(myIndex !== -1 ? myIndex + 1 : "-")
-})
+      const unsubRank = onSnapshot(rankQuery, (snapshot) => {
+        const allUsers = snapshot.docs.map(d => d.id)
+        const myIndex = allUsers.indexOf(currentUser.uid)
+        setRank(myIndex !== -1 ? myIndex + 1 : "-")
+      })
 
       return () => {
         unsubUser()
@@ -162,9 +198,16 @@ const unsubRank = onSnapshot(rankQuery, (snapshot) => {
   const saveProfile = async () => {
     if (!auth.currentUser) return
     try {
+      // ✅ SAVE ALL NEW FIELDS TO FIREBASE
       await updateDoc(doc(db, "users", auth.currentUser.uid), {
-        name: name,
-        country: country 
+        name,
+        country,
+        bio,
+        specialization,
+        experienceLevel,
+        github,
+        twitter,
+        linkedin
       })
       setEditing(false)
     } catch (error) {
@@ -213,7 +256,6 @@ const unsubRank = onSnapshot(rankQuery, (snapshot) => {
 
   if (!user) return null
 
-  // ⚡ UPDATED LEVEL LOGIC
   const currentLevel = user.stats?.level || 1
   const currentPoints = user.stats?.points || 0
   
@@ -246,9 +288,10 @@ const unsubRank = onSnapshot(rankQuery, (snapshot) => {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-500 to-transparent opacity-50" />
             
             <CardContent className="p-8">
-              <div className="flex flex-col items-center gap-8 md:flex-row">
+              <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
                 
-                <div className="relative group">
+                {/* AVATAR */}
+                <div className="relative group shrink-0">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-lime-500 to-cyan-500 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-1000"></div>
                   <Avatar className="h-32 w-32 relative border-4 border-[#0f172a]">
                     <AvatarFallback className="text-4xl bg-slate-800 text-lime-400 font-bold">
@@ -257,13 +300,14 @@ const unsubRank = onSnapshot(rankQuery, (snapshot) => {
                   </Avatar>
                 </div>
 
+                {/* USER INFO */}
                 <div className="flex-1 text-center md:text-left w-full">
-                  <div className="mb-2 flex flex-col items-center gap-4 md:flex-row">
+                  <div className="mb-3 flex flex-col items-center gap-4 md:flex-row md:items-center">
                     {editing ? (
                       <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="border border-slate-600 rounded px-3 py-1 bg-slate-800 text-white w-full md:w-auto focus:ring-2 focus:ring-lime-500 outline-none"
+                        className="border border-slate-600 rounded px-3 py-1.5 bg-slate-800 text-white w-full md:w-auto focus:ring-2 focus:ring-lime-500 outline-none font-bold"
                         placeholder="Display Name"
                       />
                     ) : (
@@ -275,63 +319,169 @@ const unsubRank = onSnapshot(rankQuery, (snapshot) => {
                     </Badge>
                   </div>
 
-                  <div className="mb-6 flex flex-col gap-3 text-sm text-slate-400 md:flex-row md:gap-6">
-                    <div className="flex items-center gap-2 justify-center md:justify-start">
-                      <Mail className="h-4 w-4 text-cyan-400" />
-                      {user.email}
-                    </div>
-                    <div className="flex items-center gap-2 justify-center md:justify-start">
-                      <Calendar className="h-4 w-4 text-purple-400" />
-                      Joined {formatDate(user.createdAt)}
-                    </div>
-                    
-                    {!editing && user.country && (
-                      <div className="flex items-center gap-2 justify-center md:justify-start">
-                        <Globe className="h-4 w-4 text-orange-400" />
-                        {user.country}
-                      </div>
-                    )}
-                  </div>
+                  {/* DISPLAY MODE DETAILS */}
+                  {!editing && (
+                    <>
+                      {/* Bio */}
+                      {user.bio && (
+                        <p className="text-slate-300 text-sm mb-4 max-w-lg italic mx-auto md:mx-0">
+                          "{user.bio}"
+                        </p>
+                      )}
 
+                      {/* Meta Info Row */}
+                      <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-slate-400 justify-center md:justify-start">
+                        <div className="flex items-center gap-1.5"><Mail className="h-4 w-4 text-cyan-400" /> {user.email}</div>
+                        <div className="flex items-center gap-1.5"><Calendar className="h-4 w-4 text-purple-400" /> Joined {formatDate(user.createdAt)}</div>
+                        
+                        {user.country && (
+                          <div className="flex items-center gap-1.5"><Globe className="h-4 w-4 text-orange-400" /> {user.country}</div>
+                        )}
+                        {user.specialization && (
+                          <div className="flex items-center gap-1.5"><Code className="h-4 w-4 text-pink-400" /> {user.specialization}</div>
+                        )}
+                        {user.experienceLevel && (
+                          <div className="flex items-center gap-1.5"><Briefcase className="h-4 w-4 text-lime-400" /> {user.experienceLevel}</div>
+                        )}
+                      </div>
+
+                      {/* Social Links */}
+                      {(user.github || user.twitter || user.linkedin) && (
+                        <div className="mb-6 flex flex-wrap items-center gap-4 justify-center md:justify-start">
+                          {user.github && (
+                            <a href={`https://github.com/${user.github.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-sm font-medium">
+                              <Github className="h-4 w-4" /> GitHub
+                            </a>
+                          )}
+                          {user.twitter && (
+                            <a href={`https://twitter.com/${user.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#1DA1F2] transition-colors flex items-center gap-1.5 text-sm font-medium">
+                              <Twitter className="h-4 w-4" /> Twitter
+                            </a>
+                          )}
+                          {user.linkedin && (
+                            <a href={user.linkedin.startsWith('http') ? user.linkedin : `https://${user.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#0A66C2] transition-colors flex items-center gap-1.5 text-sm font-medium">
+                              <Linkedin className="h-4 w-4" /> LinkedIn
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* ✅ EDIT MODE FORM GRID */}
                   {editing && (
-                    <div className="mb-4">
-                      <select
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}
-                        className="border border-slate-600 rounded px-3 py-2 bg-slate-800 text-white w-full md:w-64 focus:ring-2 focus:ring-lime-500 outline-none"
-                      >
-                        <option value="">Select Country</option>
-                        {COUNTRIES.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
+                    <div className="mb-6 w-full max-w-2xl bg-slate-900/50 p-5 rounded-xl border border-slate-700 space-y-4 text-left mx-auto md:mx-0">
+                      <div className="space-y-1">
+                        <label className="text-xs text-slate-400 font-medium tracking-wide uppercase">Bio / Tagline</label>
+                        <input 
+                          value={bio} 
+                          onChange={(e) => setBio(e.target.value)} 
+                          placeholder="E.g., Aspiring Red Teamer / B.Sc. IT Student" 
+                          className="w-full border border-slate-600 rounded px-3 py-2 bg-slate-800 text-white focus:ring-2 focus:ring-lime-500 outline-none text-sm" 
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs text-slate-400 font-medium tracking-wide uppercase">Country</label>
+                          <select 
+                            value={country} 
+                            onChange={(e) => setCountry(e.target.value)} 
+                            className="w-full border border-slate-600 rounded px-3 py-2 bg-slate-800 text-white focus:ring-2 focus:ring-lime-500 outline-none text-sm"
+                          >
+                            <option value="">Select Country</option>
+                            {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-slate-400 font-medium tracking-wide uppercase">Specialization</label>
+                          <select 
+                            value={specialization} 
+                            onChange={(e) => setSpecialization(e.target.value)} 
+                            className="w-full border border-slate-600 rounded px-3 py-2 bg-slate-800 text-white focus:ring-2 focus:ring-lime-500 outline-none text-sm"
+                          >
+                            <option value="">Select Domain</option>
+                            {SPECIALIZATIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-slate-400 font-medium tracking-wide uppercase">Experience Level</label>
+                          <select 
+                            value={experienceLevel} 
+                            onChange={(e) => setExperienceLevel(e.target.value)} 
+                            className="w-full border border-slate-600 rounded px-3 py-2 bg-slate-800 text-white focus:ring-2 focus:ring-lime-500 outline-none text-sm"
+                          >
+                            <option value="">Select Level</option>
+                            {EXPERIENCE_LEVELS.map((e) => <option key={e} value={e}>{e}</option>)}
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-slate-400 font-medium tracking-wide uppercase">GitHub Username</label>
+                          <div className="flex relative">
+                            <Github className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                            <input 
+                              value={github} 
+                              onChange={(e) => setGithub(e.target.value)} 
+                              placeholder="username" 
+                              className="w-full border border-slate-600 rounded py-2 pl-9 pr-3 bg-slate-800 text-white focus:ring-2 focus:ring-lime-500 outline-none text-sm" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-slate-400 font-medium tracking-wide uppercase">X (Twitter) Handle</label>
+                          <div className="flex relative">
+                            <Twitter className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                            <input 
+                              value={twitter} 
+                              onChange={(e) => setTwitter(e.target.value)} 
+                              placeholder="@username" 
+                              className="w-full border border-slate-600 rounded py-2 pl-9 pr-3 bg-slate-800 text-white focus:ring-2 focus:ring-lime-500 outline-none text-sm" 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-slate-400 font-medium tracking-wide uppercase">LinkedIn Profile URL</label>
+                          <div className="flex relative">
+                            <Linkedin className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                            <input 
+                              value={linkedin} 
+                              onChange={(e) => setLinkedin(e.target.value)} 
+                              placeholder="https://linkedin.com/in/username" 
+                              className="w-full border border-slate-600 rounded py-2 pl-9 pr-3 bg-slate-800 text-white focus:ring-2 focus:ring-lime-500 outline-none text-sm" 
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
+                  {/* PROGRESS BAR */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono text-lime-400">XP</span>
-                    <Progress value={safeProgress} className="h-2 flex-1 bg-slate-800" />
-                    <span className="text-xs font-mono text-slate-400">
-                      {currentPoints}/{nextThreshold}
+                    <span className="text-xs font-mono text-lime-400 font-bold">XP</span>
+                    <Progress value={safeProgress} className="h-2.5 flex-1 bg-slate-800" />
+                    <span className="text-xs font-mono text-slate-400 font-bold">
+                      {currentPoints} / {nextThreshold}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                {/* EDIT / SAVE BUTTONS */}
+                <div className="flex gap-2 shrink-0">
                   <Button 
                     variant="outline" 
                     size="icon" 
                     onClick={() => setEditing(!editing)}
-                    className="border-slate-700 bg-slate-800 hover:bg-slate-700 hover:text-white"
+                    className="border-slate-700 bg-slate-800 hover:bg-slate-700 hover:text-white h-10 w-10"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
                   {editing && (
-                    <Button onClick={saveProfile} className="bg-lime-500 text-black hover:bg-lime-400 font-bold">
-                      Save Changes
+                    <Button onClick={saveProfile} className="bg-lime-500 text-black hover:bg-lime-400 font-bold h-10">
+                      Save Profile
                     </Button>
                   )}
                 </div>
+
               </div>
             </CardContent>
           </Card>

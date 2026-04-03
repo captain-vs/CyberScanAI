@@ -3,6 +3,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser
@@ -154,6 +155,16 @@ export async function signInWithGoogle() {
     }
     
     return { success: false, error: err.message }
+  }
+}
+
+export async function resetPassword(email: string) {
+  try {
+    // This tells Firebase to automatically send the secure reset link!
+    await sendPasswordResetEmail(auth, email)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }
 

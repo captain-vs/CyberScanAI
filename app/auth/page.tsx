@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { signIn, signUp, signInWithGoogle } from "@/lib/auth" 
+// ✅ ADDED: resetPassword
+import { signIn, signUp, signInWithGoogle, resetPassword } from "@/lib/auth" 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Shield, Mail, Lock, User, Loader2, Cpu, CheckCircle, Eye, EyeOff } from "lucide-react"
+// ✅ ADDED: X icon for closing the modal
+import { Shield, Mail, Lock, User, Loader2, Cpu, CheckCircle, Eye, EyeOff, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -19,6 +21,12 @@ function AuthFormContent() {
   
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // ✅ NEW: States for the Forgot Password Modal
+  const [showResetModal, setShowResetModal] = useState(false)
+  const [resetEmail, setResetEmail] = useState("")
+  const [resetStatus, setResetStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [resetMessage, setResetMessage] = useState("")
 
   const [form, setForm] = useState({
     name: "",
@@ -36,6 +44,38 @@ function AuthFormContent() {
       setMode("login")
     }
   }, [searchParams])
+
+  // ✅ NEW: Handle Password Reset Submission
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+       setResetMessage("Please enter your email address.");
+       setResetStatus("error");
+       return;
+    }
+    
+    setResetStatus("loading");
+    try {
+       const res = await resetPassword(resetEmail);
+       if (res.success) {
+          setResetStatus("success");
+          setResetMessage("Password reset link sent! Please check your inbox.");
+       } else {
+          setResetStatus("error");
+          // Format common firebase errors gracefully
+          if (res.error?.includes("user-not-found")) {
+            setResetMessage("No account found with this email.");
+          } else if (res.error?.includes("invalid-email")) {
+            setResetMessage("Please enter a valid email address.");
+          } else {
+            setResetMessage(res.error || "Failed to send reset email.");
+          }
+       }
+    } catch (err) {
+       setResetStatus("error");
+       setResetMessage("An unexpected error occurred.");
+    }
+  }
 
   const handleGoogleLogin = async () => {
     setError("")
@@ -112,6 +152,65 @@ function AuthFormContent() {
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
       
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+
+      {/* ✅ NEW: Password Reset Modal Overlay */}
+      <AnimatePresence>
+        {showResetModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-md bg-[#0f141f] border border-slate-800 rounded-2xl p-6 shadow-2xl relative"
+            >
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <h2 className="text-xl font-bold text-white mb-2">Reset Password</h2>
+              <p className="text-sm text-slate-400 mb-6">
+                Enter your email address and we will send you a secure link to reset your password.
+              </p>
+
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                  <Input
+                    placeholder="Email Address"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="pl-9 bg-slate-950/50 border-slate-800 text-white focus:border-lime-500/50 h-10 text-sm"
+                  />
+                </div>
+
+                {resetMessage && (
+                  <div className={`p-3 rounded-lg text-xs flex items-center gap-2 ${resetStatus === "success" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+                    {resetStatus === "success" ? <CheckCircle className="h-4 w-4 flex-shrink-0" /> : <Cpu className="h-4 w-4 flex-shrink-0" />}
+                    {resetMessage}
+                  </div>
+                )}
+
+                <Button
+                  className="w-full bg-lime-500 hover:bg-lime-400 text-black font-bold h-10 text-sm transition-all"
+                  disabled={resetStatus === "loading"}
+                  type="submit"
+                >
+                  {resetStatus === "loading" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Reset Link"}
+                </Button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
@@ -202,22 +301,49 @@ function AuthFormContent() {
                 />
               </div>
 
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                <Input
-                  placeholder="Password"
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="pl-9 pr-10 bg-slate-950/50 border-slate-800 text-white focus:border-lime-500/50 h-10 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 focus:outline-none transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                  <Input
+                    placeholder="Password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="pl-9 pr-10 bg-slate-950/50 border-slate-800 text-white focus:border-lime-500/50 h-10 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 focus:outline-none transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+
+                {/* ✅ NEW: Forgot Password Link */}
+                <AnimatePresence mode="popLayout">
+                  {mode === "login" && (
+                    <motion.div 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      exit={{ opacity: 0 }} 
+                      className="flex justify-end mt-1"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowResetModal(true);
+                          setResetEmail(form.email); // Auto-fills if they already typed it!
+                          setResetStatus("idle");
+                          setResetMessage("");
+                        }}
+                        className="text-[11px] text-lime-400 hover:text-lime-300 hover:underline transition-all"
+                      >
+                        Forgot Password?
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <AnimatePresence mode="popLayout">
