@@ -20,13 +20,6 @@ import { ScanTerminal, type LogEntry } from "@/components/scan-terminal"
 import AuthGuard from "@/components/auth-guard"
 import { recordActivity } from "@/lib/activity"
 
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Free AI URL & Malware Scanner",
-  description: "Instantly analyze suspicious links, detect phishing attempts, and check files for malware with our AI-powered threat scanner.",
-};
-
 
 // --- DATASETS FOR SAMPLES ---
 const PHISHING_URLS = [
