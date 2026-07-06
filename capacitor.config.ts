@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'public',
   server: {
     androidScheme: 'https',
-    url: 'https://cybersync.vercel.app', // <--- YOUR LIVE VERCEL LINK
+    url: 'https://cybersync.vercel.app', // <--- LIVE VERCEL LINK
     cleartext: true
   }
 };
