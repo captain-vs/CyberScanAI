@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import {
   Scan,
@@ -15,8 +16,8 @@ import {
   Globe,
   Zap,
   Activity,
-  Map, // ⚡ Added Map Icon
-  Flag // ⚡ Added Flag Icon
+  Map, 
+  Flag 
 } from "lucide-react"
 
 import {
@@ -35,6 +36,7 @@ import AuthGuard from "@/components/auth-guard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { getLevelThreshold } from "@/lib/activity"
+
 // --- TYPES ---
 interface UserStats {
   scansCompleted: number
@@ -68,8 +70,6 @@ function DashboardContent() {
 
       if (!user) {
         setLoading(false)
-        // We rely on AuthGuard or the Router to handle the redirect, 
-        // so we don't need to force it here, preventing race conditions.
         return
       }
 
@@ -80,7 +80,6 @@ function DashboardContent() {
         (snap) => {
           if (!snap.exists()) return
           const data = snap.data()
-          // ... (Keep your existing Level Up logic here) ...
           
           setName(data.name || "Operative")
           setStats(data.stats || { points: 0, level: 1 })
@@ -176,12 +175,17 @@ function DashboardContent() {
           <StatCard title="CTF Captures" value={stats.challengesCompleted} icon={Gamepad2} color="text-purple-400" delay={0.4} />
         </div>
 
-        {/* OPERATIONAL MODULES */}
-        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-          <Shield className="h-5 w-5 text-blue-500"/> Operational Modules
-        </h2>
+        {/* ⚡ UPDATED: OPERATIONAL MODULES WITH DIRECTORY LINK */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Shield className="h-5 w-5 text-blue-500"/> Operational Modules
+          </h2>
+          <Link href="/directory" className="text-sm font-bold text-lime-400 hover:text-lime-300 flex items-center gap-1 transition-colors">
+            View Full Directory <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
         
-        {/* 🚀 NEW ROADMAP BANNER (FULL WIDTH) */}
+        {/* ROADMAP BANNER (FULL WIDTH) */}
         <div className="mb-6">
           <RoadmapBanner delay={0.1} />
         </div>
@@ -225,8 +229,6 @@ function DashboardContent() {
             delay={0.5}
           />
         </div>
-
-       
 
         {/* RECENT ACTIVITY LOG */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
@@ -293,7 +295,6 @@ function StatCard({ title, value, icon: Icon, color, delay }: any) {
   )
 }
 
-// ⚡ NEW: FULL WIDTH ROADMAP BANNER
 function RoadmapBanner({ delay }: { delay: number }) {
   const router = useRouter()
   return (

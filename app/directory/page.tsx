@@ -14,7 +14,8 @@ import {
   Mail, 
   Fingerprint, 
   Database,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react"
 
 // --- PLATFORM STRUCTURE DATA ---
@@ -88,7 +89,7 @@ const platformMap = [
   }
 ]
 
-// Custom Trophy Icon Component (since it was missing from initial import list)
+// Custom Trophy Icon Component 
 function TrophyIcon(props: any) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -104,13 +105,21 @@ function TrophyIcon(props: any) {
 
 export default function PlatformDirectory() {
   return (
-    <div className="min-h-screen bg-black text-slate-200 py-20 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-black text-slate-200 py-12 md:py-20 relative overflow-hidden font-sans">
       
       {/* Background FX */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
         
+        {/* ⚡ NEW: BACK BUTTON */}
+        <Link 
+          href="/dashboard" 
+          className="inline-flex items-center text-slate-400 hover:text-white font-medium mb-8 transition-colors bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-800 hover:border-slate-600"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        </Link>
+
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
             Platform <span className="text-blue-500">Directory</span>

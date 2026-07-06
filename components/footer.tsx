@@ -52,6 +52,12 @@ export function Footer() {
               <li>
                 <Link href="/osint" className="transition-colors hover:text-lime-400">OSINT Tools</Link>
               </li>
+              {/* ⚡ NEW DIRECTORY LINK */}
+              <li>
+                <Link href="/directory" className="text-lime-400 hover:text-lime-300 font-bold transition-colors flex items-center gap-1 mt-4">
+                  Platform Directory →
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -107,33 +113,31 @@ export function Footer() {
             <p className="mt-6 text-xs text-slate-500">
               System Status: <span className="text-lime-500 font-medium">● Operational</span>
             </p>
-            <h3 className="text-white font-bold">Get the App</h3>
-          <p className="text-sm">Secure your mobile experience.</p>
+            <h3 className="text-white font-bold mt-4">Get the App</h3>
+            <p className="text-sm mb-2">Secure your mobile experience.</p>
           
-          <a href="/cyberscan.apk" download>
-            <Button className="rounded-lg bg-dark-600 hover:bg-lime-500 text-white font-bold flex items-center gap-1">
-              <Smartphone className="h-4 w-4" />
-              Download APK
-              <Download className="h-4 w-4 ml-auto opacity-50" />
-            </Button>
-          </a>
+            <a href="/cyberscan.apk" download>
+              <Button className="rounded-lg bg-slate-800 hover:bg-lime-500 text-white hover:text-black font-bold flex items-center gap-2 px-4 py-2 transition-colors">
+                <Smartphone className="h-4 w-4" />
+                Download APK
+                <Download className="h-4 w-4 ml-auto opacity-50" />
+              </Button>
+            </a>
           </div>
 
         </div>
 
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 sm:flex-row">
-          {/* ⚡ UPDATED: 'text-white' and 'font-bold' */}
           <p className="text-sm font-bold text-white">
             © {new Date().getFullYear()} CyberScan AI. All rights reserved.
           </p>
           
           <div className="flex gap-6">
-            {/* ⚡ UPDATED: Links are now Pure White & Bold */}
-            <Link href="#" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
+            <Link href="/legal" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
               Privacy Policy
             </Link>
-            <Link href="#" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
+            <Link href="/legal" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
               Terms of Service
             </Link>
           </div>
