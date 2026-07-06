@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.cyberscan.app',
-  appName: 'CyberScan AI',
+  appName: 'SecurityX',
   webDir: 'public',
   server: {
     androidScheme: 'https',

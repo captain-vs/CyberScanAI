@@ -125,7 +125,7 @@ export default function PlatformDirectory() {
             Platform <span className="text-blue-500">Directory</span>
           </h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Your complete map of the CyberScan AI ecosystem. Navigate through our scanning tools, OSINT modules, and educational hubs.
+            Your complete map of the SecurityX ecosystem. Navigate through our scanning tools, OSINT modules, and educational hubs.
           </p>
         </div>
 

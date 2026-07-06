@@ -25,7 +25,7 @@ export function isCyberDomain(question: string) {
     "worm",
     "botnet",
     "ddos",
-    "cyberscan ai",
+    "SecurityX",
     "cyberscan",
     "ethical hacking",
     "penetration testing",

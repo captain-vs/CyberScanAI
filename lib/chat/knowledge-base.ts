@@ -1,8 +1,8 @@
 export const knowledgeBase = [
   {
-    keywords: ["cyberscan", "cyberscan ai"],
+    keywords: ["cyberscan", "SecurityX"],
     answer:
-      "CyberScan AI is a cybersecurity learning and defense platform that helps beginners scan threats, understand risks, and practice security concepts through tools, education, and challenges.",
+      "SecurityX is a cybersecurity learning and defense platform that helps beginners scan threats, understand risks, and practice security concepts through tools, education, and challenges.",
   },
   {
     keywords: ["scan", "what can i scan"],
@@ -42,7 +42,7 @@ export const knowledgeBase = [
   {
     keywords: ["data safe", "privacy"],
     answer:
-      "CyberScan AI does not permanently store personal scan data. All tools are designed for educational and defensive use.",
+      "SecurityX does not permanently store personal scan data. All tools are designed for educational and defensive use.",
   },
     {
   keywords: [
@@ -55,7 +55,7 @@ export const knowledgeBase = [
     "image scan",
   ],
   answer: `
-The Scanning Hub is the core feature of CyberScan AI.
+The Scanning Hub is the core feature of SecurityX.
 
 It allows beginners to check URLs, files, IP addresses, and images for potential security risks such as malware, phishing, or suspicious behavior.
 

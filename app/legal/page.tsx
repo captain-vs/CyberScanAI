@@ -23,8 +23,11 @@ export default function LegalPage() {
           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
             Legal & Policies
           </h1>
-          <p className="text-slate-400 text-lg">
+          <p className="text-slate-400 text-lg mb-2">
             Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </p>
+          <p className="text-sm text-slate-500 font-mono">
+            *Note: SecurityX was formerly operating under the name CyberScan AI.
           </p>
         </div>
 
@@ -37,10 +40,10 @@ export default function LegalPage() {
             </h2>
             <div className="space-y-4 text-red-200/80 leading-relaxed">
               <p>
-                <strong>CyberScan AI is strictly an educational platform.</strong> The tools, simulators, and information provided on this website (including but not limited to OSINT trackers, URL scanners, and GameZone challenges) are designed exclusively for learning cybersecurity concepts, ethical hacking training, and academic research.
+                <strong>SecurityX is strictly an educational platform.</strong> The tools, simulators, and information provided on this website (including but not limited to OSINT trackers, URL scanners, and GameZone challenges) are designed exclusively for learning cybersecurity concepts, ethical hacking training, and academic research.
               </p>
               <p>
-                Any actions and/or activities related to the material contained within this website are solely your responsibility. <strong>The creator(s) and administrators of CyberScan AI will not be held responsible</strong> for any criminal charges, damages, or illegal actions brought against any individuals resulting from the misuse of the tools or information provided on this platform.
+                Any actions and/or activities related to the material contained within this website are solely your responsibility. <strong>The creator(s) and administrators of SecurityX will not be held responsible</strong> for any criminal charges, damages, or illegal actions brought against any individuals resulting from the misuse of the tools or information provided on this platform.
               </p>
               <p>
                 By using this site, you explicitly agree not to use these tools to target, scan, or attack any system, network, or individual without explicit, documented permission.
@@ -55,7 +58,7 @@ export default function LegalPage() {
             </h2>
             <div className="space-y-4 text-slate-400 leading-relaxed">
               <h3 className="text-xl font-semibold text-slate-200 mt-6">1. Acceptance of Terms</h3>
-              <p>By accessing and using CyberScan AI, you accept and agree to be bound by the terms and provisions of this agreement.</p>
+              <p>By accessing and using SecurityX, you accept and agree to be bound by the terms and provisions of this agreement.</p>
               
               <h3 className="text-xl font-semibold text-slate-200 mt-6">2. Acceptable Use</h3>
               <p>You agree to use the platform only for lawful, educational purposes. You shall not use the OSINT tools to harass, stalk, or dox any individual. You shall not use the URL/File scanning tools to reverse-engineer or distribute malware.</p>
@@ -72,13 +75,13 @@ export default function LegalPage() {
             </h2>
             <div className="space-y-4 text-slate-400 leading-relaxed">
               <h3 className="text-xl font-semibold text-slate-200 mt-6">1. Data Collection</h3>
-              <p>When you register for CyberScan AI, we collect basic authentication information (such as your email address and display name) required to maintain your GameZone progress and scan history. This authentication is securely handled by Google Firebase.</p>
+              <p>When you register for SecurityX, we collect basic authentication information (such as your email address and display name) required to maintain your GameZone progress and scan history. This authentication is securely handled by Google Firebase.</p>
 
               <h3 className="text-xl font-semibold text-slate-200 mt-6">2. Tool Usage & Scanning Data</h3>
               <p>URLs, files, and IPs submitted to our scanning engine may be analyzed by our backend AI systems. Do not submit highly sensitive, confidential, or personally identifiable information into the public scanners.</p>
 
               <h3 className="text-xl font-semibold text-slate-200 mt-6">3. Data Sharing</h3>
-              <p>We do not sell, trade, or rent your personal identification information to others. Your data is used exclusively to operate, maintain, and improve the CyberScan AI platform.</p>
+              <p>We do not sell, trade, or rent your personal identification information to others. Your data is used exclusively to operate, maintain, and improve the SecurityX platform.</p>
             </div>
           </section>
 

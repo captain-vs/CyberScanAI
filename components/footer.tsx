@@ -28,7 +28,7 @@ export function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-lime-500/10 border border-lime-500/50">
                 <Shield className="h-4 w-4 text-lime-400" />
               </div>
-              <span className="text-xl tracking-tight">CyberScan AI</span>
+              <span className="text-xl tracking-tight font-bold">Security<span className="text-lime-400">X</span></span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs">
               Advanced threat detection and cybersecurity education platform. 
@@ -130,7 +130,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 sm:flex-row">
           <p className="text-sm font-bold text-white">
-            © {new Date().getFullYear()} CyberScan AI. All rights reserved.
+            © {new Date().getFullYear()} SecurityX (formerly CyberScan AI). All rights reserved.
           </p>
           
           <div className="flex gap-6">

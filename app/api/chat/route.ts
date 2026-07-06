@@ -33,7 +33,7 @@ for (const item of knowledgeBase) {
       console.log("🚫 BLOCKED: Out-of-domain")
       return NextResponse.json({
         answer:
-          "I can only assist with cybersecurity and CyberScan AI related topics.",
+          "I can only assist with cybersecurity and SecurityX related topics.",
       })
     }
 
@@ -67,7 +67,7 @@ for (const item of knowledgeBase) {
     {
       role: "system",
       content: `
-You are CyberScan AI Assistant.
+You are SecurityX Assistant.
 
 Answer rules:
 - Keep answers short (4–6 lines max)

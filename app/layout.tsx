@@ -27,14 +27,17 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://securityx.in"),
   
   title: {
-    default: "CyberScan AI - Best Cybersecurity Learning Platform for Beginners",
-    template: "%s | CyberScan AI"
+    default: "SecurityX - Best Cybersecurity Learning Platform for Beginners",
+    template: "%s | SecurityX"
   },
-  description: "Master cybersecurity with CyberScan AI. Analyze threats, complete interactive labs, and compete in our GameZone. The ultimate learning hub for beginners.",
-  keywords: ["cybersecurity scanner", "phishing detector", "malware analysis", "osint tools", "CTF practice", "learn hacking", "url scanner"],
+  description: "Master cybersecurity with SecurityX (formerly CyberScan AI). Analyze threats, complete interactive labs, and compete in our GameZone. The ultimate learning hub for beginners.",
+  keywords: ["securityx", "cyberscan ai", "cyberscan", "cybersecurity scanner", "phishing detector", "malware analysis", "osint tools", "CTF practice", "learn hacking", "url scanner"],
   authors: [{ name: "CyberScan Team" }],
-  creator: "CyberScan AI",
+  creator: "SecurityX",
 
+
+
+  
   //4: Tells Google this is the primary version of your site
   alternates: {
     canonical: "/",
@@ -52,16 +55,16 @@ export const metadata: Metadata = {
 
   // 6. Social Media Cards (Open Graph)
   openGraph: {
-    title: "CyberScan AI",
+    title: "SecurityX",
     description: "Next-Gen AI Threat Detection. Scan URLs, Files, and IPs instantly.",
     url: "https://securityx.in",
-    siteName: "CyberScan AI",
+    siteName: "SecurityX",
     images: [
       {
         url: "/og-image.png", // Must be in your /public folder!
         width: 1200,
         height: 630,
-        alt: "CyberScan AI Dashboard",
+        alt: "SecurityX Dashboard",
       },
     ],
     locale: "en_US",
@@ -71,7 +74,7 @@ export const metadata: Metadata = {
   // 7. Twitter-Specific Cards
   twitter: {
     card: "summary_large_image",
-    title: "CyberScan AI - Best Cybersecurity Learning Platform",
+    title: "SecurityX - Best Cybersecurity Learning Platform",
     description: "Next-Gen AI Threat Detection. Scan URLs, Files, and IPs instantly.",
     images: ["/og-image.png"], // Uses the same image from your /public folder
   },

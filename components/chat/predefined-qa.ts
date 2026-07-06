@@ -1,8 +1,8 @@
 export const predefinedQA = [
   {
-    keywords: ["what is cyberscan", "cyberscan ai"],
+    keywords: ["what is cyberscan", "SecurityX"],
     answer:
-      "CyberScan AI is a beginner-friendly cybersecurity learning and defense platform that helps users scan threats, understand security risks, and practice through ethical challenges.",
+      "SecurityX is a beginner-friendly cybersecurity learning and defense platform that helps users scan threats, understand security risks, and practice through ethical challenges.",
   },
   {
     keywords: ["what can i scan", "what can i scan?", "scan"],
@@ -22,7 +22,7 @@ export const predefinedQA = [
   {
     keywords: ["is my data safe", "data safe", "privacy"],
     answer:
-      "Yes. CyberScan AI does not store personal scan data permanently. All scans are processed for educational and defensive purposes only.",
+      "Yes. SecurityX does not store personal scan data permanently. All scans are processed for educational and defensive purposes only.",
   },
   {
     keywords: ["what is osint"],
@@ -42,6 +42,6 @@ export const predefinedQA = [
   {
     keywords: ["legal", "is this legal"],
     answer:
-      "Yes. CyberScan AI tools are designed strictly for legal, ethical, and defensive cybersecurity learning using publicly available information.",
+      "Yes. SecurityX tools are designed strictly for legal, ethical, and defensive cybersecurity learning using publicly available information.",
   },
 ]

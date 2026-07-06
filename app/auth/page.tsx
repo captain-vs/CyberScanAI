@@ -233,7 +233,7 @@ function AuthFormContent() {
                <div className="h-10 w-10 rounded-lg bg-lime-500/20 flex items-center justify-center border border-lime-500/50 backdrop-blur-sm">
                  <Shield className="h-5 w-5 text-lime-400" />
                </div>
-               <h2 className="text-2xl font-bold text-white tracking-tight">CyberScan AI</h2>
+               <h2 className="text-2xl font-bold text-white tracking-tight">Security<span className="text-lime-400">X</span></h2>
              </div>
              <p className="text-slate-300 leading-relaxed text-sm">
                Secure your digital footprint. Access advanced scanning tools and join the elite network.

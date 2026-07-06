@@ -93,7 +93,7 @@ export function Navigation() {
           className="flex items-center gap-2 font-bold"
         >
           <Shield className="h-6 w-6 text-primary" />
-          <span className="text-xl">CyberScan AI</span>
+          <span className="text-xl font-bold">Security<span className="text-primary">X</span></span>
         </Link>
 
         {user ? (
@@ -175,7 +175,9 @@ export function Navigation() {
 
                 <div className="mb-6 flex items-center gap-2 font-bold">
                   <Shield className="h-6 w-6 text-primary" />
-                  CyberScan AI
+                  <span className="text-xl font-bold text-blue-400">
+                    Security<span className="text-lime-400">X</span>
+                  </span>
                 </div>
 
                 {/* ✅ FIXED PROFILE BOX: CLICKABLE & CLOSES MENU */}

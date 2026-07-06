@@ -85,7 +85,7 @@ export default function Home() {
               </div>
               
               <h1 className="mb-6 text-5xl font-black tracking-tighter md:text-8xl text-white">
-                CYBER<span className="text-lime-400">SCAN</span> AI
+                SECURITY<span className="text-lime-400">X</span>
               </h1>
               
               <p className="mb-10 text-xl text-slate-400 md:text-2xl max-w-2xl mx-auto leading-relaxed">
