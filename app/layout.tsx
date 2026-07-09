@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Navigation } from "@/components/navigation"
 import AppShell from "@/components/app-shell"
-
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 // 1. Configure Fonts
 const geist = Geist({
   subsets: ["latin"],
@@ -92,7 +92,7 @@ export default function RootLayout({
         
         {/* Top Navigation Bar */}
         <Navigation />
-        
+        <ServiceWorkerRegistration />
         {/* Main Content */}
         {children}
         
