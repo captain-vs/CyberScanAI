@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   //  NEW: Base URL so Next.js can resolve your images properly
   metadataBase: new URL("https://securityx.in"),
-  
+  manifest: "/manifest.json",
   title: {
     default: "SecurityX - Best Cybersecurity Learning Platform for Beginners",
     template: "%s | SecurityX"

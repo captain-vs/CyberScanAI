@@ -1,0 +1,52 @@
+{
+  "background_color": "#ffffff",
+  "description": "Master cybersecurity with SecurityX (formerly CyberScan AI). Analyze threats, complete interactive labs, and compete in our GameZone. The ultimate learning hub for beginners.",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "SecurityX AI",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "SecurityX",
+  "start_url": "/",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://securityx.in/favicon.png",
+      "type": "image/png",
+      "sizes": "128x134",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 128,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://securityx.in/apple-icon.png",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://securityx.in/og-image.png",
+      "type": "image/png",
+      "sizes": "1344x768",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 1344,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ],
+  "lang": "en"
+}
