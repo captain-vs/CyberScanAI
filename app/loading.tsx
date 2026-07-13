@@ -1,3 +1,7 @@
 export default function Loading() {
-  return null
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-black text-white">
+      <div className="animate-pulse text-lg">Loading SecurityX...</div>
+    </div>
+  )
 }
