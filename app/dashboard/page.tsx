@@ -17,7 +17,8 @@ import {
   Zap,
   Activity,
   Map, 
-  Flag 
+  Flag, 
+  Badge
 } from "lucide-react"
 
 import {
@@ -201,15 +202,24 @@ function DashboardContent() {
             hoverColor="group-hover:text-blue-400"
             delay={0.2}
           />
-          <QuickCard 
-            icon={BookOpen} 
-            title="Education Hub" 
-            desc="Labs, News & Tutorials."
-            href="/learn" 
-            color="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-            hoverColor="group-hover:text-emerald-400"
-            delay={0.3}
-          />
+        <QuickCard 
+    icon={BookOpen} 
+    title="Education Hub" 
+    desc={
+      <>
+        Labs, News & Tutorials.
+        <br />
+        <span className="text-sm font-medium text-slate-400 text-[15px] opacity-110">
+          🎮 Explore new Siege battle game
+        </span>
+      </>
+    }
+    href="/learn" 
+    color="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+    hoverColor="group-hover:text-emerald-400"
+    delay={0.3}
+    isNew={true} // Triggers your glowing red NEW badge automatically
+  />
           <QuickCard 
             icon={Gamepad2} 
             title="GameZone" 
@@ -338,14 +348,22 @@ function RoadmapBanner({ delay }: { delay: number }) {
   )
 }
 
-function QuickCard({ icon: Icon, title, desc, href, color, hoverColor, delay }: any) {
+function QuickCard({ icon: Icon, title, desc, href, color, hoverColor, delay, isNew }: any) {
   const router = useRouter()
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay }}>
       <Card 
-        className="h-full bg-[#0b0f17] border-slate-800 hover:border-slate-600 cursor-pointer group transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/10" 
+        className="h-full bg-[#0b0f17] border-slate-800 hover:border-slate-600 cursor-pointer group transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/10 relative overflow-hidden" 
         onClick={() => router.push(href)}
       >
+        {/* ⚡ Pulsing NEW Badge */}
+        {isNew && (
+          <div className="absolute top-3 right-3 z-10">
+            <Badge className="bg-red-500 text-white animate-pulse text-[10px] uppercase font-extrabold tracking-wider border-none shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+              NEW
+            </Badge>
+          </div>
+        )}
         <CardHeader>
           <div className={`h-12 w-12 rounded-lg border flex items-center justify-center mb-4 ${color}`}>
             <Icon className="h-6 w-6" />
@@ -359,7 +377,6 @@ function QuickCard({ icon: Icon, title, desc, href, color, hoverColor, delay }: 
     </motion.div>
   )
 }
-
 export default function DashboardPage() {
   return (
     <AuthGuard>

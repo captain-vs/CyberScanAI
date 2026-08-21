@@ -14,6 +14,7 @@ import {
   LogOut,
   LayoutDashboard,
   Globe, 
+  Castle,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"

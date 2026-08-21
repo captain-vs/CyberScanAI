@@ -19,7 +19,8 @@ import {
   Star,
   ShieldCheck, // For Medium
   ShieldAlert, // For Hard
-  Lock
+  Lock,
+  ChevronDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -138,11 +139,14 @@ export default function GameZonePage() {
   // Tab State
   const [activeTab, setActiveTab] = useState<"quiz" | "challenges" | "rank">("quiz")
   
-  // Leaderboard Data
+// Leaderboard Data
   const [leaderboard, setLeaderboard] = useState<any[]>([])
+  const [visibleCount, setVisibleCount] = useState(10) // ⚡ Show top 10 initially
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const userRankIndex = leaderboard.findIndex(u => u.id === currentUserId);
   const realRank = userRankIndex !== -1 ? userRankIndex + 1 : "-";
+  const isUserInTop = userRankIndex !== -1 && userRankIndex < visibleCount;
+  const currentUserObj = userRankIndex !== -1 ? leaderboard[userRankIndex] : null;
 
   // Level Calc
   const nextLevelPoints = getLevelThreshold(stats.level)
@@ -371,24 +375,25 @@ export default function GameZonePage() {
                     </CardTitle>
                     <CardDescription>Top agents in the network</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {leaderboard.map((user: any, index: number) => {
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-slate-800">
+                      {leaderboard.slice(0, visibleCount).map((user: any, index: number) => {
                         const isMe = user.id === currentUserId 
+                        const rank = index + 1
                         
                         return (
-                          <div key={user.id} className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
+                          <div key={user.id} className={`flex items-center justify-between p-4 transition-all ${
                             isMe 
-                              ? "bg-blue-600/20 border-blue-500 shadow-[0_0_15px_-5px_rgba(37,99,235,0.5)] scale-[1.02]" 
-                              : "bg-slate-900/50 border-slate-800"
+                              ? "bg-blue-600/20 border-l-4 border-blue-500 shadow-[0_0_15px_-5px_rgba(37,99,235,0.5)] scale-[1.02]" 
+                              : "hover:bg-slate-800/40"
                           }`}>
                             <div className="flex items-center gap-4">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                                index === 0 ? "bg-yellow-500 text-black" : 
-                                index === 1 ? "bg-slate-400 text-black" :
-                                index === 2 ? "bg-orange-600 text-white" : "bg-slate-800 text-slate-400"
+                                rank === 1 ? "bg-yellow-500 text-black" : 
+                                rank === 2 ? "bg-slate-400 text-black" :
+                                rank === 3 ? "bg-orange-600 text-white" : "bg-slate-800 text-slate-400"
                               }`}>
-                                {index + 1}
+                                {rank}
                               </div>
                               <div>
                                 <div className={`font-bold ${isMe ? "text-blue-400" : "text-white"}`}>
@@ -407,6 +412,48 @@ export default function GameZonePage() {
                         )
                       })}
                     </div>
+
+                    {/* PINNED USER ROW IF OUTSIDE CURRENT TOP VIEW */}
+                    {!isUserInTop && currentUserObj && realRank !== "-" && (
+                      <>
+                        <div className="px-4 py-2 bg-slate-950 text-center text-xs text-slate-500 font-mono tracking-widest border-t border-b border-slate-800">
+                          • • •
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-blue-600/15 border-l-4 border-blue-500">
+                          <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-full bg-blue-500 text-black flex items-center justify-center font-bold">
+                              {realRank}
+                            </div>
+                            <div>
+                              <div className="font-bold text-blue-400">
+                                {currentUserObj.name || "Anonymous"} (You)
+                              </div>
+                              <div className="text-xs text-slate-500">Level {currentUserObj.stats?.level || 1}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Star className="w-4 h-4 text-blue-400" />
+                            <span className="font-mono font-bold text-blue-400">
+                              {currentUserObj.stats?.points || 0}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* SHOW MORE BUTTON */}
+                    {visibleCount < leaderboard.length && (
+                      <div className="p-4 text-center bg-slate-950/50 border-t border-slate-800">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setVisibleCount(prev => Math.min(prev + 10, leaderboard.length))}
+                          className="border-slate-700 text-slate-300 hover:bg-slate-800 gap-2 font-mono text-xs cursor-pointer"
+                        >
+                          Show More <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>

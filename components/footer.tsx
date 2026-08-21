@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { Shield, Github, Twitter, Linkedin, Heart, Download, Smartphone } from "lucide-react"
 import { Button } from "react-day-picker"
 
-export function Footer() {
+export default function Footer() {
   const pathname = usePathname()
 
   // 🚫 Hide footer on auth pages
@@ -34,6 +34,9 @@ export function Footer() {
               Advanced threat detection and cybersecurity education platform. 
               Secure your digital footprint with next-gen scanning tools.
             </p>
+            <p className="text-xs text-slate-500 pt-2">
+              System Status: <span className="text-lime-500 font-medium">● Operational</span>
+            </p>
           </div>
 
           {/* Platform Links */}
@@ -52,7 +55,6 @@ export function Footer() {
               <li>
                 <Link href="/osint" className="transition-colors hover:text-lime-400">OSINT Tools</Link>
               </li>
-              {/* ⚡ NEW DIRECTORY LINK */}
               <li>
                 <Link href="/directory" className="text-lime-400 hover:text-lime-300 font-bold transition-colors flex items-center gap-1 mt-4">
                   Platform Directory →
@@ -61,18 +63,15 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Resources Links */}
+          {/* Resources & Roadmap */}
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">Resources</h3>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/learn" className="transition-colors hover:text-lime-400">Documentation</Link>
-              </li>
-              <li>
                 <Link href="/roadmap" className="transition-colors hover:text-lime-400">Cyber Roadmap</Link>
               </li>
               <li>
-                <Link href="/gamezone/leaderboard" className="transition-colors hover:text-lime-400">Leaderboard</Link>
+                <Link href="/gamezone" className="transition-colors hover:text-lime-400">Leaderboard</Link>
               </li>
               <li>
                 <Link href="/profile" className="transition-colors hover:text-lime-400">User Profile</Link>
@@ -80,65 +79,49 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Social / Connect */}
+          {/* Support & Get the App */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">Connect</h3>
-            <div className="flex gap-4">
-              <a 
-                href="https://github.com" 
-                target="_blank" 
-                rel="noreferrer"
-                className="rounded-lg bg-slate-900 p-2 text-slate-400 transition-all hover:bg-lime-500 hover:text-black"
-              >
-                <Github className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noreferrer"
-                className="rounded-lg bg-slate-900 p-2 text-slate-400 transition-all hover:bg-lime-500 hover:text-black"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://linkedin.com" 
-                target="_blank" 
-                rel="noreferrer"
-                className="rounded-lg bg-slate-900 p-2 text-slate-400 transition-all hover:bg-lime-500 hover:text-black"
-              >
-                <Linkedin className="h-5 w-5" />
-              </a>
-            </div>
-            
-            <p className="mt-6 text-xs text-slate-500">
-              System Status: <span className="text-lime-500 font-medium">● Operational</span>
-            </p>
-            <h3 className="text-white font-bold mt-4">Get the App</h3>
-            <p className="text-sm mb-2">Secure your mobile experience.</p>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">Support</h3>
+            <ul className="space-y-2.5 text-sm mb-6">
+              <li>
+                <Link href="/support" className="transition-colors hover:text-lime-400">Help Center & FAQs</Link>
+              </li>
+              <li>
+                <Link href="/support" className="transition-colors hover:text-lime-400">Send Feedback</Link>
+              </li>
+              <li>
+                <a href="mailto:customercare@securityx.in" className="transition-colors hover:text-lime-400 font-mono text-xs">
+                  customercare@securityx.in
+                </a>
+              </li>
+            </ul>
+
+            <h3 className="text-white font-bold mb-1">Get the App</h3>
+            <p className="text-xs text-slate-400 mb-3">SecurityX Mobile Companion.</p>
           
-            <a href="/cyberscan.apk" download>
-              <Button className="rounded-lg bg-slate-800 hover:bg-lime-500 text-white hover:text-black font-bold flex items-center gap-2 px-4 py-2 transition-colors">
-                <Smartphone className="h-4 w-4" />
-                Download APK
-                <Download className="h-4 w-4 ml-auto opacity-50" />
-              </Button>
-            </a>
+            <a href="https://apps.microsoft.com/detail/9MTN8V2PV8D0" target="_blank" rel="noreferrer">
+    <Button className="rounded-lg bg-slate-800 hover:bg-lime-500 text-white hover:text-black font-bold flex items-center gap-2 px-4 py-2 transition-colors w-full justify-center">
+      <Smartphone className="h-4 w-4" />
+      Microsoft Store
+    </Button>
+  </a>
           </div>
 
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 sm:flex-row">
+       {/* Bottom Bar */}
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-slate-800 pt-8 sm:flex-row">
           <p className="text-sm font-bold text-white">
             © {new Date().getFullYear()} SecurityX (formerly CyberScan AI). All rights reserved.
           </p>
           
-          <div className="flex gap-6">
+          {/* ⚡ Using ml-auto with a negative margin or spacing offset to shift left */}
+          <div className="flex gap-6 mr-12 sm:mr-20">
             <Link href="/legal" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
-              Privacy Policy
+              Privacy Policy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </Link>
             <Link href="/legal" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
-              Terms of Service
+              Terms of Service&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </Link>
           </div>
         </div>

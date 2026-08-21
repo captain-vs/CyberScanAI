@@ -27,6 +27,17 @@ type ContentItem = {
 // --- STATIC DATA ---
 const tutorials: ContentItem[] = [
   {
+    id: "siege-arena",
+    title: "Cyber Dominion: Siege Arena",
+    description: "Multiplayer Strategy: Command your cyber hub, deploy SQLi, DDoS, and Phishing payloads, and conquer rival sectors.",
+    category: "Game",
+    readTime: "7 min match",
+    author: "System Root",
+    difficulty: "Intermediate",
+    url: "/learn/lab/module3", // Links directly to your game page
+    
+  },
+  {
     id: "m0",
     title: "Module 0: Terminal Velocity",
     description: "Interactive Lab: Learn basic CLI commands and establish your first secure connection.",
@@ -209,10 +220,17 @@ function LearnContent() {
                 <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
               </div>
             )}
+
             <CardHeader>
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">{item.category}</Badge>
                 <Badge variant="outline" className={getDifficultyColor(item.difficulty)}>{item.difficulty}</Badge>
+                {/* ⚡ NEW BADGE & TIMELINE TAG OVERLAY */}
+                {item.id === "siege-arena" && Date.now() < new Date("2026-10-31T23:59:59").getTime() && (
+                  <Badge className="bg-red-500 text-white font-extrabold animate-pulse ml-auto text-[30px]">
+                      NEW
+                  </Badge>
+                )}
               </div>
               <CardTitle className="line-clamp-2 text-xl text-white group-hover:text-blue-400 transition-colors">{item.title}</CardTitle>
               <CardDescription className="line-clamp-2 text-slate-400">{item.description}</CardDescription>

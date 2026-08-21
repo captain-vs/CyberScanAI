@@ -6,6 +6,7 @@ import {
   persistentLocalCache, 
   persistentMultipleTabManager 
 } from "firebase/firestore";
+import { getDatabase } from "firebase/database"; // <-- Added import
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -60,4 +61,15 @@ try {
   console.error("❌ Auth initialization failed:", error);
 }
 
-export { auth, db };
+// 4. ENABLE REALTIME DATABASE EXPORT
+let database: any = null;
+try {
+  if (app) {
+    database = getDatabase(app);
+    console.log("✅ Realtime Database initialized successfully");
+  }
+} catch (error) {
+  console.error("❌ Realtime Database initialization failed:", error);
+}
+
+export { auth, db, database };

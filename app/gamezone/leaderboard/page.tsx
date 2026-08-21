@@ -13,7 +13,8 @@ import {
   Terminal,
   Loader2,
   Filter,
-  Zap
+  Zap,
+  ChevronDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -23,9 +24,9 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import AuthGuard from "@/components/auth-guard"
 import { auth, db } from "@/lib/firebase"
-import { doc, onSnapshot } from "firebase/firestore"
+import { doc, onSnapshot, collection, getDocs } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
-import { motion, AnimatePresence } from "framer-motion" // ⚡ IMPORTED FRAMER MOTION
+import { motion, AnimatePresence } from "framer-motion"
 
 // --- DATA ---
 type Challenge = {
@@ -35,6 +36,13 @@ type Challenge = {
   difficulty: "Easy" | "Medium" | "Hard"
   points: number
   category: string
+}
+
+type LeaderboardUser = {
+  id: string
+  name: string
+  points: number
+  level: number
 }
 
 const challengesList: Challenge[] = [
@@ -90,30 +98,55 @@ function CountUp({ value }: { value: number }) {
 export default function GameZonePage() {
   const [stats, setStats] = useState({ points: 0, challengesCompleted: 0, level: 1 })
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState("All") // ⚡ FILTER STATE
+  const [filter, setFilter] = useState("All") 
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
+  const [visibleCount, setVisibleCount] = useState(10) // Shows top 10 initially
 
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      if (!user) return setLoading(false)
-      const unsubDoc = onSnapshot(doc(db, "users", user.uid), (doc) => {
-        if (doc.exists()) {
-          const data = doc.data()
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      setCurrentUserId(user.uid)
+
+      const unsubDoc = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data()
           setStats(data.stats || { points: 0, challengesCompleted: 0, level: 1 })
         }
-        setLoading(false)
       })
+
+      try {
+        const usersSnapshot = await getDocs(collection(db, "users"))
+        const usersList: LeaderboardUser[] = []
+        usersSnapshot.forEach((d) => {
+          const dData = d.data()
+          usersList.push({
+            id: d.id,
+            name: dData.name || "Operative",
+            points: dData.stats?.points || 0,
+            level: dData.stats?.level || 1
+          })
+        })
+        usersList.sort((a, b) => b.points - a.points)
+        setLeaderboard(usersList)
+      } catch (err) {
+        console.error("Leaderboard fetch error:", err)
+      }
+
+      setLoading(false)
       return () => unsubDoc()
     })
     return () => unsubAuth()
   }, [])
 
-  // ⚡ FILTER LOGIC
   const categories = ["All", "Linux Terminal", "Web Security", "Network Security", "Cryptography"]
   const filteredChallenges = filter === "All" 
     ? challengesList 
     : challengesList.filter(c => c.category === filter)
 
-  // ⚡ HELPER FOR ICONS
   const getCategoryIcon = (cat: string) => {
     if (cat.includes("Linux")) return <Terminal className="h-4 w-4" />
     if (cat.includes("Web")) return <Code className="h-4 w-4" />
@@ -129,6 +162,12 @@ export default function GameZonePage() {
 
   const nextLevelPoints = stats.level * 1000
 
+  // Calculate current user's rank position
+  const userRankIndex = leaderboard.findIndex(u => u.id === currentUserId)
+  const userRank = userRankIndex !== -1 ? userRankIndex + 1 : null
+  const isUserInTop = userRankIndex !== -1 && userRankIndex < visibleCount
+  const currentUserObj = userRankIndex !== -1 ? leaderboard[userRankIndex] : null
+
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-background">
       <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -140,7 +179,6 @@ export default function GameZonePage() {
       <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0f172a] to-black">
         <div className="container mx-auto px-4 py-12">
           
-          {/* ⚡ HERO SECTION WITH ANIMATION */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }} 
             animate={{ opacity: 1, y: 0 }}
@@ -154,13 +192,11 @@ export default function GameZonePage() {
             </p>
           </motion.div>
 
-          {/* ⚡ ANIMATED STATS BAR */}
           <div className="mb-12 grid gap-6 md:grid-cols-4">
              <StatCard icon={Zap} value={<CountUp value={stats.points} />} label="Total Points" color="primary" />
              <StatCard icon={CheckCircle} value={<CountUp value={stats.challengesCompleted} />} label="Completed" color="secondary" />
-             <StatCard icon={Trophy} value={`#${stats.points > 0 ? "142" : "-"}`} label="Global Rank" color="accent" />
+             <StatCard icon={Trophy} value={`#${userRank || "-"}`} label="Global Rank" color="accent" />
              
-             {/* LEVEL PROGRESS */}
              <motion.div 
                initial={{ scale: 0.9, opacity: 0 }}
                animate={{ scale: 1, opacity: 1 }}
@@ -179,7 +215,81 @@ export default function GameZonePage() {
              </motion.div>
           </div>
 
-          {/* ⚡ INTERACTIVE FILTERS */}
+          {/* ⚡ LEADERBOARD SECTION (TOP 10 + PINNED USER + SHOW MORE) */}
+          <div className="mb-16">
+            <h2 className="mb-6 text-3xl font-bold flex items-center gap-2">
+              <Trophy className="text-yellow-500" /> Global Leaderboard
+            </h2>
+            
+            <Card className="bg-slate-900/60 border-slate-800 backdrop-blur-sm overflow-hidden">
+              <CardContent className="p-0">
+                <div className="divide-y divide-slate-800">
+                  {leaderboard.slice(0, visibleCount).map((user, index) => {
+                    const rank = index + 1
+                    const isMe = user.id === currentUserId
+                    return (
+                      <div key={user.id} className={`flex items-center justify-between p-4 transition-colors ${isMe ? 'bg-blue-600/10 border-l-4 border-blue-500' : 'hover:bg-slate-800/40'}`}>
+                        <div className="flex items-center gap-4">
+                          <span className={`font-mono font-bold w-8 text-center ${rank === 1 ? 'text-yellow-400 text-lg' : rank === 2 ? 'text-slate-300' : rank === 3 ? 'text-amber-600' : 'text-slate-500'}`}>
+                            #{rank}
+                          </span>
+                          <div>
+                            <p className={`font-bold flex items-center gap-2 ${isMe ? 'text-blue-400' : 'text-white'}`}>
+                              {user.name} {isMe && <Badge className="bg-blue-500 text-[10px] py-0">You</Badge>}
+                            </p>
+                            <p className="text-xs text-slate-400 font-mono">Level {user.level}</p>
+                          </div>
+                        </div>
+                        <div className="font-mono font-bold text-primary">
+                          {user.points} XP
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* PINNED USER ROW IF OUTSIDE CURRENT TOP VIEW */}
+                {!isUserInTop && currentUserObj && userRank && (
+                  <>
+                    <div className="px-4 py-2 bg-slate-950 text-center text-xs text-slate-500 font-mono tracking-widest border-t border-b border-slate-800">
+                      • • •
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-blue-600/15 border-l-4 border-blue-500">
+                      <div className="flex items-center gap-4">
+                        <span className="font-mono font-bold w-8 text-center text-blue-400">
+                          #{userRank}
+                        </span>
+                        <div>
+                          <p className="font-bold text-blue-400 flex items-center gap-2">
+                            {currentUserObj.name} <Badge className="bg-blue-500 text-[10px] py-0">You</Badge>
+                          </p>
+                          <p className="text-xs text-slate-400 font-mono">Level {currentUserObj.level}</p>
+                        </div>
+                      </div>
+                      <div className="font-mono font-bold text-primary">
+                        {currentUserObj.points} XP
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* SHOW MORE BUTTON */}
+                {visibleCount < leaderboard.length && (
+                  <div className="p-4 text-center bg-slate-950/50 border-t border-slate-800">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setVisibleCount(prev => Math.min(prev + 10, leaderboard.length))}
+                      className="border-slate-700 text-slate-300 hover:bg-slate-800 gap-2 font-mono text-xs cursor-pointer"
+                    >
+                      Show More <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="flex flex-wrap gap-2 mb-8 justify-center">
             {categories.map((cat) => (
               <Button
@@ -195,7 +305,6 @@ export default function GameZonePage() {
             ))}
           </div>
 
-          {/* ⚡ CHALLENGES GRID (LAYOUT ANIMATION) */}
           <div className="mb-16">
             <h2 className="mb-6 text-3xl font-bold flex items-center gap-2">
               <Target className="text-primary" /> Active Challenges
@@ -242,7 +351,6 @@ export default function GameZonePage() {
             </motion.div>
           </div>
 
-          {/* ⚡ QUIZZES SECTION */}
           <div>
             <h2 className="mb-6 text-3xl font-bold flex items-center gap-2">
               <Gamepad2 className="text-secondary" /> Quick Quizzes
@@ -272,7 +380,6 @@ export default function GameZonePage() {
             </div>
           </div>
 
-          {/* ACHIEVEMENTS LINK */}
           <motion.div whileHover={{ scale: 1.01 }} className="mt-16">
             <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
               <CardContent className="p-10 text-center">
@@ -292,7 +399,6 @@ export default function GameZonePage() {
   )
 }
 
-// ⚡ ANIMATED STAT CARD
 function StatCard({ icon: Icon, value, label, color }: any) {
   const colors: Record<string, string> = { 
     primary: "text-primary border-primary/20 bg-primary/10", 

@@ -15,7 +15,8 @@ import {
   Fingerprint, 
   Database,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Swords
 } from "lucide-react"
 
 // --- PLATFORM STRUCTURE DATA ---
@@ -69,9 +70,10 @@ const platformMap = [
     bgColor: "bg-orange-500/10",
     description: "Deep-dives, tutorials, and structured learning paths.",
     links: [
-      { name: "Learning Center", path: "/learn", icon: BookOpen },
-      { name: "Interactive Labs", path: "/learn/lab", icon: Terminal },
-      { name: "Threat Articles", path: "/learn/article", icon: Database },
+      { name: "Siege Arena (Multiplayer)", path: "/learn/lab/module3", icon: Swords },
+      { name: "Learning Center", path: "/learn/lab/module0", icon: BookOpen },
+      { name: "Interactive Labs", path: "/learn", icon: Terminal },
+      { name: "Threat Articles", path: "/learn", icon: Database },
       { name: "Cybersecurity Roadmap", path: "/roadmap", icon: Map },
     ]
   },
