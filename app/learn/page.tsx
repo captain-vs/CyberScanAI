@@ -227,7 +227,7 @@ function LearnContent() {
                 <Badge variant="outline" className={getDifficultyColor(item.difficulty)}>{item.difficulty}</Badge>
                 {/* ⚡ NEW BADGE & TIMELINE TAG OVERLAY */}
                 {item.id === "siege-arena" && Date.now() < new Date("2026-10-31T23:59:59").getTime() && (
-                  <Badge className="bg-red-500 text-white font-extrabold animate-pulse ml-auto text-[10px]">
+                  <Badge className="bg-red-500 text-white font-extrabold animate-pulse ml-auto text-[20px]">
                       NEW
                   </Badge>
                 )}
