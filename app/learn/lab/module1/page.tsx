@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-// ✅ FIX 1: Added 'Clock' to the imports below
 import { Terminal, ShieldAlert, Cpu, Keyboard, Power, X, CheckCircle2, XCircle, Heart, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -11,11 +10,12 @@ import AuthGuard from "@/components/auth-guard"
 import { useRouter } from "next/navigation" 
 import { recordActivity } from "@/lib/activity"
 
-// --- COMMAND DATA ---
+// --- COMMAND DATA (Ordered: First 5 are Simple Daily Life, followed by Professional & Advanced) ---
 const COMMAND_POOL = [
+  // --- First 5: Simple Daily Life Commands (Guaranteed to appear first) ---
   { 
     cmd: "ls", 
-    desc: "Lists all files and directories within the current folder context.\nUsing flags like '-a' reveals hidden configuration files, while '-l' provides detailed permissions." 
+    desc: "Lists all files and directories within the current folder context.\nUsing flags like '-a' reveals hidden configuration files." 
   },
   { 
     cmd: "cd", 
@@ -23,39 +23,41 @@ const COMMAND_POOL = [
   },
   { 
     cmd: "pwd", 
-    desc: "Prints the absolute path of the current working directory.\nCrucial during scripting to verify exactly where you are in the filesystem." 
+    desc: "Prints the absolute path of the current working directory.\nCrucial for verifying exactly where you are in the filesystem." 
   },
   { 
     cmd: "whoami", 
-    desc: "Displays the username of the current user invoking the command.\nSecurity scripts use this to verify if the shell has 'root' privileges." 
+    desc: "Displays the username of the current user invoking the command.\nQuickly verifies your active permission state in the terminal." 
   },
   { 
     cmd: "clear", 
-    desc: "Clears all visible text from the terminal screen.\nNote: This usually just scrolls previous output out of view; history remains accessible." 
+    desc: "Clears all visible text from the terminal screen.\nKeeps your workspace clean and tidy during long sessions." 
+  },
+
+  // --- Professional, Security, & Advanced Commands Follow ---
+  { 
+    cmd: "nmap -sV", 
+    desc: "Scans a target for open ports and service versions.\nAnalyzes responses to guess which software version is running on a target." 
   },
   { 
-    cmd: "mkdir", 
-    desc: "Creates a new directory (folder) at the specified path.\nUse the '-p' flag to create complex nested directory structures instantly." 
+    cmd: "sqlmap", 
+    desc: "Automates detection and exploitation of SQL injection flaws.\nUsed by testers to verify if a database can be compromised via web inputs." 
   },
   { 
-    cmd: "touch", 
-    desc: "Updates a file's timestamp or creates an empty file if it doesn't exist.\nCommonly used to create placeholder files for testing." 
+    cmd: "netstat", 
+    desc: "Shows network connections, routing tables, and stats.\nSecurity analysts use this to identify open ports and active connections." 
   },
   { 
-    cmd: "rm -rf", 
-    desc: "Recursively and forcefully removes files/directories.\nWARNING: Deleted files bypass the trash bin and are often unrecoverable." 
+    cmd: "grep error", 
+    desc: "Searches text data for lines matching a pattern.\nExtremely powerful for filtering massive log files to find specific errors." 
   },
   { 
-    cmd: "cp file", 
-    desc: "Copies a source file or directory to a new destination.\nCreates an exact duplicate while keeping the original intact." 
+    cmd: "ps aux", 
+    desc: "Displays a snapshot of all running processes.\nShows Process ID (PID), CPU/Memory usage, and the user owner." 
   },
   { 
-    cmd: "mv data", 
-    desc: "Moves a file to a new directory or renames it.\nUnlike copying, this removes the file from its original location." 
-  },
-  { 
-    cmd: "cat log", 
-    desc: "Outputs a file's entire content to the terminal.\nBest for short files; large files can flood the screen without a pager like 'less'." 
+    cmd: "chmod +x", 
+    desc: "Adds the 'executable' permission to a file.\nNecessary to run a script directly from the shell using './filename'." 
   },
   { 
     cmd: "sudo apt", 
@@ -66,32 +68,92 @@ const COMMAND_POOL = [
     desc: "Sends ICMP packets to test connectivity to an IP or domain.\nMeasures the round-trip time to ensure the network path is active." 
   },
   { 
-    cmd: "chmod +x", 
-    desc: "Adds the 'executable' permission to a file.\nNecessary to run a script directly from the shell using './filename'." 
+    cmd: "tcpdump", 
+    desc: "Captures packets passing through a network interface.\nEssential for deep network traffic inspection and forensic analysis." 
   },
   { 
-    cmd: "ps aux", 
-    desc: "Displays a snapshot of all running processes.\nShows Process ID (PID), CPU/Memory usage, and the user owner." 
+    cmd: "hydra", 
+    desc: "A high-speed login cracker supporting multiple protocols.\nUsed during authorized penetration tests to audit weak passwords." 
   },
   { 
-    cmd: "grep error", 
-    desc: "Searches text data for lines matching a pattern.\nExtremely powerful for filtering massive log files to find specific errors." 
+    cmd: "john", 
+    desc: "Performs offline password hash cracking.\nTests system security by attempting to reverse hashed passwords into plaintext." 
   },
   { 
-    cmd: "netstat", 
-    desc: "Shows network connections, routing tables, and stats.\nSecurity analysts use this to identify open ports and active connections." 
+    cmd: "mkdir", 
+    desc: "Creates a new directory (folder) at the specified path.\nUse the '-p' flag to create complex nested folders instantly." 
   },
   { 
-    cmd: "nmap -sV", 
-    desc: "Scans a target for open ports and service versions.\nAnalyzes responses to guess which software version is running on a target." 
+    cmd: "touch", 
+    desc: "Updates a file's timestamp or creates an empty file if it doesn't exist.\nCommonly used to create quick scratchpads or notes." 
   },
   { 
-    cmd: "sqlmap", 
-    desc: "Automates detection and exploitation of SQL injection flaws.\nUsed by testers to verify if a database can be compromised via web inputs." 
+    cmd: "rm", 
+    desc: "Removes files or directories from the filesystem.\nBe careful, deleted files bypass the desktop trash bin." 
+  },
+  { 
+    cmd: "cp", 
+    desc: "Copies a source file or directory to a new destination.\nCreates an exact duplicate while keeping your original file safe." 
+  },
+  { 
+    cmd: "mv", 
+    desc: "Moves a file to a new directory or renames it.\nAllows you to easily organize your documents and projects." 
+  },
+  { 
+    cmd: "cat", 
+    desc: "Outputs a file's entire content directly to the terminal screen.\nBest for reviewing configuration files or short notes." 
+  },
+  { 
+    cmd: "history", 
+    desc: "Displays a list of all previously executed commands in your session.\nHelps you quickly recall a complex command you ran earlier." 
+  },
+  { 
+    cmd: "df -h", 
+    desc: "Shows available disk space on your file systems in a human-readable format.\nGreat for checking if your storage is filling up." 
   },
   { 
     cmd: "exit", 
-    desc: "Terminates the current shell session.\nCloses the terminal window or disconnects from a remote SSH session." 
+    desc: "Terminates the current shell session or window.\nSafely closes out your terminal workspace when you're done." 
+  },
+  { 
+    cmd: "find / -name '*.log' 2>/dev/null", 
+    desc: "Recursively searches the entire filesystem for all log files while suppressing permission errors.\nEssential for deep forensic audits and finding buried application logs." 
+  },
+  { 
+    cmd: "tar -czvf backup.tar.gz /var/www/html", 
+    desc: "Compresses a directory into a single gzipped archive file.\nWidely used by system administrators for taking quick, portable website backups." 
+  },
+  { 
+    cmd: "netstat -tulnp | grep LISTEN", 
+    desc: "Lists all active network ports currently listening for incoming connections along with their Process IDs.\nCrucial for identifying rogue background services." 
+  },
+  { 
+    cmd: "awk '{print $1}' /var/log/nginx/access.log", 
+    desc: "Extracts specific columns from text files using pattern scanning.\nFrequently used in security analytics to pull out raw IP addresses from web logs." 
+  },
+  { 
+    cmd: "systemctl status sshd --no-pager", 
+    desc: "Checks the operational status of the Secure Shell daemon service without opening an interactive scrolling view.\nUsed in automated server health checks." 
+  },
+  { 
+    cmd: "history | grep 'sudo apt'", 
+    desc: "Searches through your previously executed command history to find past software installation commands.\nHelps track historical server modifications." 
+  },
+  { 
+    cmd: "journalctl -u nginx.service -e", 
+    desc: "Jumps directly to the end of the systemd journal logs specifically for the Nginx web server.\nIndispensable for quick web debugging." 
+  },
+  { 
+    cmd: "curl -I https://securityx.in", 
+    desc: "Performs a lightweight HTTP HEAD request to fetch only the server response headers and status codes.\nUsed to inspect security policies and cookies." 
+  },
+  { 
+    cmd: "openssl s_client -connect securityx.in:443", 
+    desc: "Establishes a raw SSL/TLS connection socket to inspect security certificates, cipher suites, and handshake protocols.\nVital for cryptography audits." 
+  },
+  { 
+    cmd: "iptables -L -v -n --line-numbers", 
+    desc: "Displays the active Linux firewall rule tables with verbose packet counters and line numbers.\nUsed by system defenders to audit packet filtering." 
   }
 ]
 
@@ -108,12 +170,12 @@ export default function TerminalGamePage() {
   // Game State
   const [gameStatus, setGameStatus] = useState<"idle" | "playing" | "gameover">("idle")
   
-  // LOGIC STATE (Refs for real-time accuracy)
+  // LOGIC STATE
   const livesRef = useRef(3)
   const roundDurationRef = useRef(7)
   const timeLeftRef = useRef(7.0)
   
-  // UI State (For rendering)
+  // UI State
   const [uiLives, setUiLives] = useState(3)
   const [uiTimeLeft, setUiTimeLeft] = useState(7.0)
   const [uiRoundDuration, setUiRoundDuration] = useState(7)
@@ -123,68 +185,74 @@ export default function TerminalGamePage() {
   const [userInput, setUserInput] = useState("")
   const [isShake, setIsShake] = useState(false)
 
-  // History/Logs
+  // History & Anti-Repeat Queue (Tracks last 10 commands)
   const [gameHistory, setGameHistory] = useState<GameLog[]>([])
+  const recentCommandsRef = useRef<string[]>([])
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const processingRef = useRef(false) // Prevents double-firing
+  const processingRef = useRef(false)
 
   // --- GAME LOGIC ---
   const startGame = () => {
     setGameStatus("playing")
-    
-    // Reset Logic Refs
     livesRef.current = 3
     roundDurationRef.current = 7
     timeLeftRef.current = 7.0
     
-    // Reset UI State
     setUiLives(3)
     setUiRoundDuration(7)
     setGameHistory([])
+    recentCommandsRef.current = []
     
     nextRound(true) 
   }
 
   const nextRound = (isReset = false) => {
-    processingRef.current = false
+  processingRef.current = false
+  
+  let randomObj;
+  // If we haven't finished the first 5 commands yet during a fresh game, pick them in order!
+  if (isReset && recentCommandsRef.current.length === 0) {
+    randomObj = COMMAND_POOL[0]; // starts with 'ls'
+  } else if (recentCommandsRef.current.length < 5 && isReset) {
+    randomObj = COMMAND_POOL[recentCommandsRef.current.length];
+  } else {
+    // Standard random picker with your 10-command anti-repeat filter
+    const available = COMMAND_POOL.filter(item => !recentCommandsRef.current.includes(item.cmd))
+    const poolToUse = available.length > 0 ? available : COMMAND_POOL
+    randomObj = poolToUse[Math.floor(Math.random() * poolToUse.length)]
+  }
+
+  recentCommandsRef.current.push(randomObj.cmd)
+  if (recentCommandsRef.current.length > 10) {
+    recentCommandsRef.current.shift()
+  }
+
+  setCurrentCmdObj(randomObj)
+  setUserInput("")
     
-    // 1. Pick new command
-    const randomObj = COMMAND_POOL[Math.floor(Math.random() * COMMAND_POOL.length)]
-    setCurrentCmdObj(randomObj)
-    setUserInput("")
-    
-    // 2. Set Time for this round
     const nextDuration = isReset ? 7 : Math.max(2, roundDurationRef.current)
     roundDurationRef.current = nextDuration
     timeLeftRef.current = nextDuration
     
-    // Sync UI
     setUiRoundDuration(nextDuration)
     setUiTimeLeft(nextDuration)
     
-    // 3. Auto-focus
     setTimeout(() => inputRef.current?.focus(), 50)
 
-    // 4. Start Timer
     if (timerRef.current) clearInterval(timerRef.current)
     
     timerRef.current = setInterval(() => {
-      // Decrement Ref
       timeLeftRef.current -= 0.1
-      
-      // Update UI
       setUiTimeLeft(Math.max(0, timeLeftRef.current))
 
-      // Check Death
       if (timeLeftRef.current <= 0.05) { 
         handleRoundEnd("missed") 
       }
     }, 100)
   }
 
-  // Calculate Penalty based on Rules
   const getPenaltyAmount = (currentTime: number) => {
     if (currentTime > 35) return 10
     if (currentTime > 20) return 5
@@ -192,12 +260,11 @@ export default function TerminalGamePage() {
   }
 
   const handleRoundEnd = (status: "success" | "missed") => {
-    if (processingRef.current) return // Stop double calls
+    if (processingRef.current) return 
     processingRef.current = true
     
     if (timerRef.current) clearInterval(timerRef.current)
 
-    // Log Result
     const timeUsed = Math.max(0, roundDurationRef.current - timeLeftRef.current)
     setGameHistory(prev => {
       const exists = prev.find(p => p.command === currentCmdObj.cmd);
@@ -212,23 +279,18 @@ export default function TerminalGamePage() {
 
     if (status === "missed") {
       triggerShake()
-      
-      // DECREASE LIFE (Using Ref for immediate logic)
       livesRef.current -= 1
-      setUiLives(livesRef.current) // Sync UI
+      setUiLives(livesRef.current)
 
-      // PENALTY: Decrease NEXT round duration
       const penalty = getPenaltyAmount(roundDurationRef.current)
       roundDurationRef.current = Math.max(2, roundDurationRef.current - penalty)
 
-      // CHECK GAME OVER
       if (livesRef.current <= 0) {
         gameOver()
       } else {
         setTimeout(() => nextRound(), 500)
       }
     } else {
-      // SUCCESS: Increase NEXT round duration
       roundDurationRef.current += 1
       nextRound()
     }
@@ -238,8 +300,6 @@ export default function TerminalGamePage() {
     if (timerRef.current) clearInterval(timerRef.current)
     setGameStatus("gameover")
     
-    // ✅ FIX 2: Changed type from "game" to "quiz" to satisfy your Type Definition
-    // If you want "game", you must add | "game" to your ActivityType in lib/activity.ts
     recordActivity({ 
         type: "quiz", 
         description: `Breach Protocol - Survived ${gameHistory.length} rounds`, 
@@ -251,13 +311,11 @@ export default function TerminalGamePage() {
     const val = e.target.value
     setUserInput(val)
 
-    // TYPO CHECK
     if (!currentCmdObj.cmd.startsWith(val)) {
       triggerShake()
-      // TYPO PENALTY: Reduce CURRENT timer immediately
       const penalty = getPenaltyAmount(timeLeftRef.current)
       timeLeftRef.current = Math.max(0, timeLeftRef.current - penalty)
-      setUiTimeLeft(timeLeftRef.current) // Force UI update
+      setUiTimeLeft(timeLeftRef.current)
       
       if (timeLeftRef.current <= 0) {
         handleRoundEnd("missed")
@@ -265,7 +323,6 @@ export default function TerminalGamePage() {
       return
     }
 
-    // SUCCESS CHECK
     if (val === currentCmdObj.cmd) {
       handleRoundEnd("success")
     }
@@ -286,11 +343,9 @@ export default function TerminalGamePage() {
     <AuthGuard>
       <div className="min-h-screen bg-black text-lime-400 font-mono relative overflow-hidden flex flex-col items-center justify-center p-4">
         
-        {/* CRT & GLOW EFFECTS */}
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-50 bg-[size:100%_2px,3px_100%]" />
         <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_center,transparent_50%,#000_100%)] z-40" />
 
-        {/* TOP BAR */}
         <div className="absolute top-0 w-full p-6 flex justify-between items-center z-30">
            <div className="flex items-center gap-3 opacity-70">
              <Terminal className="h-5 w-5" />
@@ -305,11 +360,9 @@ export default function TerminalGamePage() {
            </Button>
         </div>
 
-        {/* MAIN CONTENT */}
         <div className="w-full max-w-4xl relative z-20">
           <AnimatePresence mode="wait">
             
-            {/* 1. START SCREEN */}
             {gameStatus === "idle" && (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -327,11 +380,11 @@ export default function TerminalGamePage() {
                       <Cpu className="h-4 w-4" /> MISSION RULES:
                    </h3>
                    <ul className="space-y-2 text-lime-300/80 list-disc pl-4">
-                      <li><strong>Lives:</strong> You have 3 attempts. Missing 3 times terminates connection.</li>
-                      <li><strong>Success:</strong> +1 sec added to total time for the next round.</li>
-                      <li><strong>Timeout:</strong> Lose 1 Life. Next round time decreases.</li>
-                      <li><strong>Typo:</strong> Lose CURRENT time immediately.</li>
-                      <li><strong>Surge:</strong> Time &gt; 20s = -5s penalty. Time &gt; 35s = -10s penalty.</li>
+                     <li><strong>Lives:</strong> You have 3 attempts. Missing 3 times terminates connection.</li>
+                     <li><strong>Success:</strong> +1 sec added to total time for the next round.</li>
+                     <li><strong>Timeout:</strong> Lose 1 Life. Next round time decreases.</li>
+                     <li><strong>Typo:</strong> Lose CURRENT time immediately.</li>
+                     <li><strong>Surge:</strong> Time &gt; 20s = -5s penalty. Time &gt; 35s = -10s penalty.</li>
                    </ul>
                 </div>
 
@@ -344,14 +397,12 @@ export default function TerminalGamePage() {
               </motion.div>
             )}
 
-            {/* 2. PLAYING SCREEN */}
             {gameStatus === "playing" && (
               <motion.div 
                 key="game"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 className={`w-full ${isShake ? "animate-shake" : ""}`}
               >
-                {/* HUD */}
                 <div className="flex justify-between items-end mb-8 px-4">
                    <div className="flex flex-col gap-1">
                       <span className="text-xs uppercase text-lime-400/60 tracking-widest">Connection Stability</span>
@@ -360,8 +411,8 @@ export default function TerminalGamePage() {
                             <Heart 
                                key={i} 
                                className={`h-6 w-6 transition-all duration-300 ${
-                                  i < uiLives ? "fill-lime-400 text-lime-400 drop-shadow-[0_0_8px_lime]" : "fill-transparent text-red-900/30"
-                               }`} 
+                                 i < uiLives ? "fill-lime-400 text-lime-400 drop-shadow-[0_0_8px_lime]" : "fill-transparent text-red-900/30"
+                              }`} 
                             />
                          ))}
                       </div>
@@ -375,13 +426,14 @@ export default function TerminalGamePage() {
                    </div>
                 </div>
 
-                {/* COMMAND DISPLAY */}
-                <div className="relative mb-12 text-center">
-                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl md:text-8xl font-black text-lime-900/20 select-none blur-sm whitespace-nowrap">
+                {/* COMMAND DISPLAY WRAPPER WITH OVERFLOW HANDLING FOR LONG LINES */}
+                <div className="relative mb-12 text-center px-4">
+                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl md:text-6xl font-black text-lime-900/20 select-none blur-sm whitespace-nowrap overflow-hidden max-w-full">
                       {currentCmdObj.cmd}
                    </div>
                    
-                   <div className="relative z-10 text-5xl md:text-7xl font-bold font-mono tracking-wider flex justify-center gap-1">
+                   {/* Wrapping container for long commands */}
+                   <div className="relative z-10 text-2xl md:text-5xl font-bold font-mono tracking-wider flex flex-wrap justify-center gap-1 max-w-full overflow-x-auto break-all py-2">
                       {currentCmdObj.cmd.split('').map((char, index) => {
                         const userChar = userInput[index]
                         let color = "text-lime-900" 
@@ -397,7 +449,6 @@ export default function TerminalGamePage() {
                    </div>
                 </div>
 
-                {/* INPUT */}
                 <Card className="bg-black/50 border border-lime-500/50 backdrop-blur-md overflow-hidden relative max-w-xl mx-auto">
                   <div className="p-6 flex items-center gap-4">
                     <span className="text-lime-500 font-bold animate-pulse text-xl">{">"}</span>
@@ -406,7 +457,7 @@ export default function TerminalGamePage() {
                       type="text" 
                       value={userInput}
                       onChange={handleInput}
-                      className="bg-transparent border-none outline-none text-lime-400 w-full font-mono text-2xl uppercase placeholder:text-lime-900/30"
+                      className="bg-transparent border-none outline-none text-lime-400 w-full font-mono text-xl md:text-2xl normal-case placeholder:text-lime-900/30"
                       placeholder="TYPE COMMAND..."
                       autoFocus
                       autoComplete="off"
@@ -421,7 +472,6 @@ export default function TerminalGamePage() {
               </motion.div>
             )}
 
-            {/* 3. GAME OVER SCREEN */}
             {gameStatus === "gameover" && (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
@@ -447,7 +497,7 @@ export default function TerminalGamePage() {
                             <div className="flex justify-between items-center mb-1">
                                <p className="text-white font-bold font-mono text-xl">{log.command}</p>
                                <Badge variant="outline" className={log.status === "success" ? "border-lime-500 text-lime-500" : "border-red-500 text-red-500"}>
-                                  {log.timeTaken}s
+                                 {log.timeTaken}s
                                </Badge>
                             </div>
                             <p className="text-sm text-lime-400/60 leading-relaxed whitespace-pre-line">
@@ -463,7 +513,6 @@ export default function TerminalGamePage() {
                      EXIT
                    </Button>
                    <Button onClick={startGame} className="flex-1 bg-lime-500 hover:bg-lime-400 text-black font-bold">
-                     {/* ✅ FIX: Clock is now imported correctly */}
                      <Clock className="mr-2 h-4 w-4" /> RECONNECT
                    </Button>
                 </div>
