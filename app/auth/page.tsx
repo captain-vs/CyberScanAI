@@ -28,6 +28,12 @@ function AuthFormContent() {
   const [resetStatus, setResetStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [resetMessage, setResetMessage] = useState("")
 
+  // ✅ NEW: State for Policy Acceptance Checkbox
+  const [agreePolicy, setAgreePolicy] = useState(false)
+
+  // ✅ NEW: State for Privacy Policy Modal
+  const [showPolicyModal, setShowPolicyModal] = useState(false)
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -105,6 +111,11 @@ function AuthFormContent() {
     setLoading(true)
 
     if (mode === "register") {
+      if (!agreePolicy) {
+        setError("You must agree to the Terms and Privacy Policy to register")
+        setLoading(false)
+        return
+      }
       if (form.password.length < 6) {
         setError("Password must be at least 6 characters")
         setLoading(false)
@@ -152,6 +163,63 @@ function AuthFormContent() {
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
       
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+
+      {/* ✅ NEW: Privacy Policy Modal Overlay */}
+      <AnimatePresence>
+        {showPolicyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-[#0f141f] border border-slate-800 rounded-2xl p-6 shadow-2xl relative text-slate-300 text-xs leading-relaxed space-y-4"
+            >
+              <button
+                onClick={() => setShowPolicyModal(false)}
+                className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <h2 className="text-xl font-bold text-white mb-2">Privacy Policy & Terms</h2>
+              
+              <div className="space-y-3">
+                <h3 className="font-bold text-lime-400">1. Who We Are</h3>
+                <p>SecurityX ("we", "us", "our") is a gamified learning platform for IT and cybersecurity students. This Privacy Policy explains how we collect, use, and protect your information when you use our website and services.</p>
+
+                <h3 className="font-bold text-lime-400">2. Information We Collect</h3>
+                <p>Account information: When you sign up, we collect your email address and username/name. Profile information, game/lab data, usage data, and authentication tokens via secure infrastructure are stored safely.</p>
+
+                <h3 className="font-bold text-lime-400">3. How We Use Your Information</h3>
+                <p>We use your information to operate and improve the platform, display leaderboards, track lab completion, send account-related emails, and provide support. We do not sell your personal data to third parties.</p>
+
+                <h3 className="font-bold text-lime-400">4. Third-Party Services & Security</h3>
+                <p>We use secure database and authentication services. Your data is encrypted and handled securely adhering to standard web protocols.</p>
+
+                <h3 className="font-bold text-lime-400">5. Cookies & Tracking</h3>
+                <p>We use essential cookies and local storage to maintain your login session and remember your preferences.</p>
+
+                <h3 className="font-bold text-lime-400">6. Contact Us</h3>
+                <p>If you have any questions about this Privacy Policy, contact us at customercare@securityx.in.</p>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800 flex justify-end">
+                <Button 
+                  onClick={() => setShowPolicyModal(false)}
+                  className="bg-lime-500 hover:bg-lime-400 text-black font-bold h-8 text-xs px-4"
+                >
+                  Close
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ✅ NEW: Password Reset Modal Overlay */}
       <AnimatePresence>
@@ -242,7 +310,7 @@ function AuthFormContent() {
         </div>
 
         {/* RIGHT SIDE: FORM */}
-        <div className="flex items-center justify-center h-full bg-[#0f141f] p-6 sm:p-8">
+        <div className="flex items-center justify-center h-full bg-[#0f141f] p-6 sm:p-8 overflow-y-auto">
           <div className="w-full max-w-sm flex flex-col justify-center">
             
             <div className="mb-4 text-center md:text-left">
@@ -352,9 +420,9 @@ function AuthFormContent() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
+                    className="overflow-hidden space-y-3"
                   >
-                    <div className="relative mt-3">
+                    <div className="relative">
                       <CheckCircle className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                       <Input
                         placeholder="Confirm Password"
@@ -370,6 +438,27 @@ function AuthFormContent() {
                       >
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
+                    </div>
+
+                    {/* ✅ NEW: Policy Checkbox */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="checkbox"
+                        id="policy"
+                        checked={agreePolicy}
+                        onChange={(e) => setAgreePolicy(e.target.checked)}
+                        className="rounded border-slate-700 bg-slate-900 text-lime-500 focus:ring-0 h-4 w-4 cursor-pointer"
+                      />
+                      <label htmlFor="policy" className="text-[11px] text-slate-400 cursor-pointer select-none">
+                        I agree to the{" "}
+                        <button
+                          type="button"
+                          onClick={() => setShowPolicyModal(true)}
+                          className="text-lime-400 hover:underline focus:outline-none"
+                        >
+                          Terms & Privacy Policy
+                        </button>
+                      </label>
                     </div>
                   </motion.div>
                 )}
@@ -414,6 +503,7 @@ function AuthFormContent() {
                   setForm({ name: "", email: "", password: "", confirmPassword: "" })
                   setShowPassword(false)
                   setShowConfirmPassword(false)
+                  setAgreePolicy(false)
                 }}
                 className="text-lime-400 hover:text-lime-300 font-bold hover:underline transition-all ml-1"
               >

@@ -27,6 +27,36 @@ type ContentItem = {
 // --- STATIC DATA ---
 const tutorials: ContentItem[] = [
   {
+    id: "m0",
+    title: "Module 0: Terminal Velocity",
+    description: "Interactive Lab: Learn basic CLI commands and establish your first secure connection.",
+    category: "Basics",
+    readTime: "5 min",
+    author: "System Root",
+    difficulty: "Beginner",
+    url: "/learn/lab/module0" // ✅ Internal Link
+  },
+    {
+  id: "terminal-game",
+  title: "Game:Terminal Breach Protocol",
+  description: "Rhythm Game: Type commands against the clock to bypass the firewall.", 
+  category: "Mini-Game", 
+  readTime: "~2 min",
+  author: "System Root",
+  difficulty: "Intermediate",
+  url: "/learn/lab/module1" 
+},
+  {
+  id: "m2",
+  title: "Module 1: The OSI & TCP/IP Network Models",
+  description: "Interactive Lab: Watch how data actually travels across networks using a real-world packet journey simulator.",
+  category: "Fundamentals",
+  readTime: "8 min",
+  author: "System Root",
+  difficulty: "Beginner",
+  url: "/learn/lab/module2" // ✅ Links directly to your new interactive lab file
+},
+  {
     id: "siege-arena",
     title: "Cyber Dominion: Siege Arena",
     description: "Multiplayer Strategy: Command your cyber hub, deploy SQLi, DDoS, and Phishing payloads, and conquer rival sectors.",
@@ -37,27 +67,8 @@ const tutorials: ContentItem[] = [
     url: "/learn/lab/module3", // Links directly to your game page
     
   },
-  {
-    id: "m0",
-    title: "Module 0: Terminal Velocity",
-    description: "Interactive Lab: Learn basic CLI commands and establish your first secure connection.",
-    category: "Basics",
-    readTime: "5 min",
-    author: "System Root",
-    difficulty: "Beginner",
-    url: "/learn/lab/module0" // ✅ Internal Link
-  },
     
-  {
-  id: "terminal-game",
-  title: "Game:Terminal Breach Protocol",
-  description: "Rhythm Game: Type commands against the clock to bypass the firewall.", 
-  category: "Mini-Game", 
-  readTime: "~2 min",
-  author: "System Root",
-  difficulty: "Intermediate",
-  url: "/learn/lab/module1" 
-},
+
   {
     id: "t1",
     title: "Complete Guide to 2FA & Auth Security",
@@ -227,8 +238,13 @@ function LearnContent() {
                 <Badge variant="outline" className={getDifficultyColor(item.difficulty)}>{item.difficulty}</Badge>
                 {/* ⚡ NEW BADGE & TIMELINE TAG OVERLAY */}
                 {item.id === "siege-arena" && Date.now() < new Date("2026-10-31T23:59:59").getTime() && (
-                  <Badge className="bg-red-500 text-white font-extrabold animate-pulse ml-auto text-[20px]">
-                      NEW
+                  <Badge className="bg-red-500 text-white font-extrabold animate-pulse ml-auto text-[15px]">
+                    NEW
+                  </Badge>
+                )}
+                {item.id === "m2" && Date.now() < new Date("2026-10-31T23:59:59").getTime() && (
+                  <Badge className="bg-red-500 text-white font-extrabold animate-pulse ml-auto text-[15px]">
+                    NEW
                   </Badge>
                 )}
               </div>

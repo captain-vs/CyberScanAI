@@ -104,43 +104,61 @@ export default function GameZonePage() {
   const [visibleCount, setVisibleCount] = useState(10) // Shows top 10 initially
 
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setLoading(false)
-        return
-      }
-      setCurrentUserId(user.uid)
+  let unsubDoc: (() => void) | undefined
 
-      const unsubDoc = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data()
-          setStats(data.stats || { points: 0, challengesCompleted: 0, level: 1 })
+  const unsubAuth = onAuthStateChanged(auth, async (user) => {
+    if (unsubDoc) unsubDoc()
+
+    if (!user) {
+      setLoading(false)
+      return
+    }
+    
+    setCurrentUserId(user.uid)
+
+    // User Listener with Error Suppression
+    unsubDoc = onSnapshot(
+      doc(db, "users", user.uid), 
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data()
+          const currentStats = data.stats || { points: 0, challengesCompleted: 0, level: 1 }
+          setStats(currentStats)
+          setCompletedIds(data.completedChallenges || [])
         }
-      })
+        setLoading(false)
+      },
+      (error) => {
+        if (error.code === "permission-denied") return // 👈 Suppresses logout error
+      }
+    )
 
-      try {
-        const usersSnapshot = await getDocs(collection(db, "users"))
-        const usersList: LeaderboardUser[] = []
-        usersSnapshot.forEach((d) => {
-          const dData = d.data()
-          usersList.push({
-            id: d.id,
-            name: dData.name || "Operative",
-            points: dData.stats?.points || 0,
-            level: dData.stats?.level || 1
-          })
+    try {
+      const usersSnapshot = await getDocs(collection(db, "users"))
+      const usersList: any[] = []
+      usersSnapshot.forEach((d) => {
+        const dData = d.data()
+        usersList.push({
+          id: d.id,
+          name: dData.name || "Operative",
+          points: dData.stats?.points || 0,
+          level: dData.stats?.level || 1
         })
-        usersList.sort((a, b) => b.points - a.points)
-        setLeaderboard(usersList)
-      } catch (err) {
+      })
+      usersList.sort((a, b) => b.points - a.points)
+      setLeaderboard(usersList)
+    } catch (err: any) {
+      if (err.code !== "permission-denied") {
         console.error("Leaderboard fetch error:", err)
       }
+    }
+  })
 
-      setLoading(false)
-      return () => unsubDoc()
-    })
-    return () => unsubAuth()
-  }, [])
+  return () => {
+    unsubAuth()
+    if (unsubDoc) unsubDoc()
+  }
+}, [])
 
   const categories = ["All", "Linux Terminal", "Web Security", "Network Security", "Cryptography"]
   const filteredChallenges = filter === "All" 
@@ -421,4 +439,8 @@ function StatCard({ icon: Icon, value, label, color }: any) {
       </Card>
     </motion.div>
   )
+}
+
+function setCompletedIds(arg0: any) {
+  throw new Error("Function not implemented.")
 }

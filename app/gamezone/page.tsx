@@ -160,47 +160,69 @@ export default function GameZonePage() {
     const savedTab = localStorage.getItem("gamezone_tab") as "quiz" | "challenges" | "rank"
     if (savedTab) setActiveTab(savedTab)
 
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      if (!user) return setLoading(false)
+    let unsubDoc: (() => void) | undefined
+
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      if (unsubDoc) unsubDoc()
+
+      if (!user) {
+        setLoading(false)
+        return
+      }
       
       setCurrentUserId(user.uid)
 
-      // User Listener
-      const unsubDoc = onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
-        if (docSnapshot.exists()) {
-          const data = docSnapshot.data()
-          const currentStats = data.stats || { points: 0, challengesCompleted: 0, level: 1 }
-          
-          // Self-Healing
-          let calcLevel = currentStats.level
-          let threshold = getLevelThreshold(calcLevel)
-          while (currentStats.points >= threshold) {
-            calcLevel++
-            threshold = getLevelThreshold(calcLevel)
-          }
-          if (calcLevel !== currentStats.level) {
-             updateDoc(doc(db, "users", user.uid), { "stats.level": calcLevel })
-             currentStats.level = calcLevel
-          }
+      // User Listener with Error Suppression for Logout
+      unsubDoc = onSnapshot(
+        doc(db, "users", user.uid), 
+        (docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const data = docSnapshot.data()
+            const currentStats = data.stats || { points: 0, challengesCompleted: 0, level: 1 }
+            
+            // Self-Healing
+            let calcLevel = currentStats.level
+            let threshold = getLevelThreshold(calcLevel)
+            while (currentStats.points >= threshold) {
+              calcLevel++
+              threshold = getLevelThreshold(calcLevel)
+            }
+            if (calcLevel !== currentStats.level) {
+               updateDoc(doc(db, "users", user.uid), { "stats.level": calcLevel })
+               currentStats.level = calcLevel
+            }
 
-          setStats(currentStats)
-          setCompletedIds(data.completedChallenges || [])
+            setStats(currentStats)
+            setCompletedIds(data.completedChallenges || [])
+          }
+          setLoading(false)
+        },
+        (error) => {
+          if (error.code === "permission-denied") return // ⚡ Suppresses logout error
+          console.error("Firestore Error:", error)
         }
-        setLoading(false)
-      })
+      )
 
       // Fetch Leaderboard (Top 50)
       const fetchLeaderboard = async () => {
-        const q = query(collection(db, "users"), orderBy("stats.points", "desc"), limit(50))
-        const snapshot = await getDocs(q)
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-        setLeaderboard(data)
+        try {
+          const q = query(collection(db, "users"), orderBy("stats.points", "desc"), limit(50))
+          const snapshot = await getDocs(q)
+          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+          setLeaderboard(data)
+        } catch (err: any) {
+          if (err.code !== "permission-denied") {
+            console.error("Leaderboard fetch error:", err)
+          }
+        }
       }
       fetchLeaderboard()
-
-      return () => unsubDoc()
     })
-    return () => unsubAuth()
+
+    return () => {
+      unsubAuth()
+      if (unsubDoc) unsubDoc()
+    }
   }, [])
 
   const handleTabChange = (tab: "quiz" | "challenges" | "rank") => {

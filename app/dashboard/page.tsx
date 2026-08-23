@@ -61,63 +61,57 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let unsubUser: (() => void) | undefined
-    let unsubActivity: (() => void) | undefined
+  let unsubUser: (() => void) | undefined
+  let unsubActivity: (() => void) | undefined
 
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      // Cleanup old listeners immediately
-      if (unsubUser) unsubUser()
-      if (unsubActivity) unsubActivity()
+  const unsubAuth = onAuthStateChanged(auth, (user) => {
+    // Clean up previous listeners if they exist
+    if (unsubUser) unsubUser()
+    if (unsubActivity) unsubActivity()
 
-      if (!user) {
-        setLoading(false)
-        return
-      }
-
-      // 1. Setup User Listener WITH ERROR HANDLING
-      const userRef = doc(db, "users", user.uid)
-      unsubUser = onSnapshot(
-        userRef,
-        (snap) => {
-          if (!snap.exists()) return
-          const data = snap.data()
-          
-          setName(data.name || "Operative")
-          setStats(data.stats || { points: 0, level: 1 })
-          setLoading(false)
-        },
-        // ⚡ ERROR HANDLER: Silences the logout error
-        (error) => {
-          if (error.code === "permission-denied") {
-            console.log("Logout cleanup: Listener detached.")
-            return
-          }
-          console.error("Firestore Error:", error)
-        }
-      )
-
-      // 2. Setup Activity Listener WITH ERROR HANDLING
-      const activityRef = collection(db, "users", user.uid, "activity")
-      const q = query(activityRef, orderBy("timestamp", "desc"), limit(5))
-      unsubActivity = onSnapshot(
-        q, 
-        (snap) => {
-          setActivity(snap.docs.map((d) => d.data() as ActivityItem))
-        },
-        // ⚡ ERROR HANDLER
-        (error) => {
-          if (error.code === "permission-denied") return
-          console.error("Activity Error:", error)
-        }
-      )
-    })
-
-    return () => {
-      unsubAuth()
-      if (unsubUser) unsubUser()
-      if (unsubActivity) unsubActivity()
+    if (!user) {
+      setLoading(false)
+      return
     }
-  }, [router])
+
+    // 1. User Document Listener with Error Handling
+    const userRef = doc(db, "users", user.uid)
+    unsubUser = onSnapshot(
+      userRef,
+      (snap) => {
+        if (!snap.exists()) return
+        const data = snap.data()
+        setName(data.name || "Operative")
+        setStats(data.stats || { points: 0, level: 1 })
+        setLoading(false)
+      },
+      (error) => {
+        if (error.code === "permission-denied") return // 👈 Suppresses logout error
+        console.error("Firestore User Error:", error)
+      }
+    )
+
+    // 2. Activity Collection Listener with Error Handling
+    const activityRef = collection(db, "users", user.uid, "activity")
+    const q = query(activityRef, orderBy("timestamp", "desc"), limit(5))
+    unsubActivity = onSnapshot(
+      q,
+      (snap) => {
+        setActivity(snap.docs.map((d) => d.data() as ActivityItem))
+      },
+      (error) => {
+        if (error.code === "permission-denied") return // 👈 Suppresses logout error
+        console.error("Firestore Activity Error:", error)
+      }
+    )
+  })
+
+  return () => {
+    unsubAuth()
+    if (unsubUser) unsubUser()
+    if (unsubActivity) unsubActivity()
+  }
+}, [router])
 
   if (loading || !stats) return (
     <div className="min-h-screen bg-black flex items-center justify-center text-blue-500">
