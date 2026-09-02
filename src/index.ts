@@ -107,77 +107,72 @@ export const securityScanFlow = ai.defineFlow(
     }
 
     // 🅱️ TEXT/METADATA PATH (Standard Scan)
-    const modelsToTry = [
-      "llama-3.3-70b-versatile",
-      "llama-3.1-70b-versatile",
-      "llama-3.1-8b-instant",
-    ];
+  const modelsToTry = [
+"openai/gpt-oss-20b",
+    "openai/gpt-oss-120b",
+  ];
 
-    for (const modelName of modelsToTry) {
-      try {
-        console.log(`🤖 Attempting scan with model: ${modelName}...`);
+  for (const modelName of modelsToTry) {
+    try {
+      console.log(`🤖 Attempting scan with model: ${modelName}...`);
 
-        const completion = await groq.chat.completions.create({
-          messages: [
+      const completion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: `You are an elite cybersecurity threat analyst.
+            Analyze this ${type}: "${target}".
+            
+            Generate a detailed security report. If it's a URL, provide realistic (but simulated) request/response headers, IP, and SSL info. For files/IPs, provide relevant details.
+            
+            Return ONLY valid JSON. No markdown.
+            
+            JSON Schema:
             {
-              role: "system",
-              content: `You are an elite cybersecurity threat analyst.
-              Analyze this ${type}: "${target}".
-              
-              Generate a detailed security report. If it's a URL, provide realistic (but simulated) request/response headers, IP, and SSL info. For files/IPs, provide relevant details.
-              
-              Return ONLY valid JSON. No markdown.
-              
-              JSON Schema:
-              {
-                "status": "Clean" | "Warning" | "Malicious",
-                "description": "Brief summary",
-                "threatExplanation": "Detailed analysis",
-                "recommendations": "Actionable steps",
-                "vendors": [
-                  {"name": "Pattern Analysis", "result": "Clean/Malicious"},
-                  {"name": "SSL Check", "result": "Clean/Warning/N/A"},
-                  {"name": "Domain Reputation", "result": "Clean/Malicious/N/A"},
-                  {"name": "VirusTotal", "result": "Clean/Malicious"}
-                ],
-                "aiDetection": {
-                   "isAiGenerated": boolean,
-                   "confidenceScore": number (0-100),
-                   "reasoning": "Based on metadata/naming analysis"
-                },
-                "analysis": {
-                  "ipAddress": "Simulated IP or N/A",
-                  "hostname": "Extracted hostname or N/A",
-                  "country": "Simulated Country or N/A",
-                  "sslCertificate": "Simulated status or N/A",
-                  "details": [{"label": "Feature", "value": "Detail"}],
-                  "requestHeaders": [{"header": "Header-Name", "value": "Header-Value"}],
-                  "responseHeaders": [{"header": "Header-Name", "value": "Header-Value"}]
-                }
-              }`
-            },
-            {
-              role: "user",
-              content: `Analyze this ${type}: "${target}"`
-            }
-          ],
-          model: modelName, 
-          temperature: 0.3, 
-          response_format: { type: "json_object" } 
-        });
+              "status": "Clean" | "Warning" | "Malicious",
+              "description": "Brief summary",
+              "threatExplanation": "Detailed analysis",
+              "recommendations": "Actionable steps",
+              "vendors": [
+                {"name": "Pattern Analysis", "result": "Clean/Malicious"},
+                {"name": "SSL Check", "result": "Clean/Warning/N/A"},
+                {"name": "Domain Reputation", "result": "Clean/Malicious/N/A"},
+                {"name": "VirusTotal", "result": "Clean/Malicious"}
+              ],
+              "aiDetection": {
+                 "isAiGenerated": boolean,
+                 "confidenceScore": number (0-100),
+                 "reasoning": "Based on metadata/naming analysis"
+              },
+              "analysis": {
+                "ipAddress": "Simulated IP or N/A",
+                "hostname": "Extracted hostname or N/A",
+                "country": "Simulated Country or N/A",
+                "sslCertificate": "Simulated status or N/A",
+                "details": [{"label": "Feature", "value": "Detail"}],
+                "requestHeaders": [{"header": "Header-Name", "value": "Header-Value"}],
+                "responseHeaders": [{"header": "Header-Name", "value": "Header-Value"}]
+              }
+            }`
+          },
+          {
+            role: "user",
+            content: `Analyze this ${type}: "${target}"`
+          }
+        ],
+        model: modelName, 
+        temperature: 0.3, 
+        response_format: { type: "json_object" } 
+      });
 
-        const content = completion.choices[0]?.message?.content || "{}";
-        return JSON.parse(content);
+      const content = completion.choices[0]?.message?.content || "{}";
+      return JSON.parse(content);
 
-      } catch (error: any) {
-        if (error.status === 400 || error.status === 404 || error.code === 'model_decommissioned') {
-           console.warn(`⚠️ Model ${modelName} unavailable. Trying next...`);
-           continue;
-        }
-        console.error("❌ Groq Error:", error.message);
-        break;
-      }
+    } catch (error: any) {
+      console.warn(`⚠️ Model ${modelName} failed:`, error.message);
+      continue;
     }
+  }
 
     // Fallback
     return {

@@ -52,21 +52,20 @@ for (const item of knowledgeBase) {
        4️⃣ GROQ AI (CONTROLLED FALLBACK)
     --------------------------------------- */
     console.log("🤖 FALLBACK TO: Groq AI")
-
-    const groqRes = await fetch(
-  "https://api.groq.com/openai/v1/chat/completions",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-  model: "llama-3.1-8b-instant",
-  messages: [
-    {
-      role: "system",
-      content: `
+const groqRes = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-oss-20b",
+          messages: [
+            {
+              role: "system",
+              content: `
 You are SecurityX Assistant.
 
 Answer rules:
@@ -81,19 +80,18 @@ Scope:
 - OSINT awareness
 - AI in cybersecurity (high-level)
 - Online safety and privacy
-      `,
-    },
-    {
-      role: "user",
-      content: question,
-    },
-  ],
-  temperature: 0.3,
-  max_tokens: 180,
-}),
-
-  }
-)
+              `,
+            },
+            {
+              role: "user",
+              content: question,
+            },
+          ],
+          temperature: 0.3,
+          max_tokens: 180,
+        }),
+      }
+    )
 
     const data = await groqRes.json()
 

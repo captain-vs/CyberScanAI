@@ -6,6 +6,7 @@ import "./globals.css"
 import { Navigation } from "@/components/navigation"
 import AppShell from "@/components/app-shell"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
+import { ChatBox } from "@/components/chat/chatbox"
 
 // 1. Configure Fonts
 const geist = Geist({
@@ -97,6 +98,7 @@ export default function RootLayout({
         {/* Main Content */}
         {children}
         
+        <ChatBox />
         {/* App Shell (Chat, Footer, etc.) */}
         <AppShell />
         

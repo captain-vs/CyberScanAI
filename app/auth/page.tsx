@@ -5,10 +5,11 @@ import { useState, useEffect, Suspense } from "react"
 import { signIn, signUp, signInWithGoogle, resetPassword } from "@/lib/auth" 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-// ✅ ADDED: X icon for closing the modal
-import { Shield, Mail, Lock, User, Loader2, Cpu, CheckCircle, Eye, EyeOff, X } from "lucide-react"
+// ✅ ADDED: ArrowLeft for the back-to-landing button
+import { Shield, Mail, Lock, User, Loader2, Cpu, CheckCircle, Eye, EyeOff, X, ArrowLeft } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
 
 // --- EXTRACTED MAIN FORM COMPONENT ---
 function AuthFormContent() {
@@ -164,6 +165,20 @@ function AuthFormContent() {
       
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
+      {/* ✅ BACK TO LANDING PAGE BUTTON */}
+      <div className="absolute top-6 left-6 z-20">
+        <Link href="/">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-slate-900/80 border-slate-800 text-slate-300 hover:text-white hover:border-lime-500/50 backdrop-blur-md gap-2 font-mono text-xs"
+          >
+            <ArrowLeft className="h-4 w-4 text-lime-400" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+
       {/* ✅ NEW: Privacy Policy Modal Overlay */}
       <AnimatePresence>
         {showPolicyModal && (
@@ -284,7 +299,7 @@ function AuthFormContent() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-4xl h-[580px] bg-[#0f141f] rounded-3xl shadow-2xl border border-slate-800 overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10"
+        className="w-full max-w-4xl h-[580px] bg-[#0f141f] rounded-3xl shadow-2xl border border-slate-800 overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10 mt-10 md:mt-0"
       >
         
         {/* LEFT SIDE: IMAGE */}

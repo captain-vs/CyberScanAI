@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
   Shield, Flame, Globe, Database, Lock, Play, RefreshCw, X, 
-  Server, Terminal, CheckCircle2, AlertTriangle, Trophy, Users, Clock, Zap, Cpu, Eye, Swords, MapPin, History, LogOut, Bug, ArrowLeft, Brain, BookOpen
+  Server, Terminal, CheckCircle2, AlertTriangle, Trophy, Users, Clock, Zap, Cpu, Eye, Swords, MapPin, History, LogOut, Bug, ArrowLeft, Brain, BookOpen, Menu
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,10 +82,13 @@ export default function KingdomSiegeArena() {
   const [selectedPayload, setSelectedPayload] = useState<"SQL Injection" | "DDoS Flood" | "Phishing Link" | null>(null);
   const [centerMessage, setCenterMessage] = useState<string | null>(null);
 
+  // --- MOBILE SIDEBAR STATE ---
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+
   const isGameOverProcessed = useRef(false);
   const shouldSyncStorage = useRef(false); 
 
-  // --- NEW: REFS FOR REAL-TIME INTERVALS (Fixes the timer lag) ---
+  // --- REFS FOR REAL-TIME INTERVALS ---
   const playersRef = useRef(players);
   const raidsRef = useRef(raids);
   
@@ -261,12 +264,12 @@ export default function KingdomSiegeArena() {
     return () => clearInterval(ticker);
   }, [gameState, lobbyEndTime, matchEndTime, isHost, roomId]);
 
-  // --- 5. HOST AUTOBOT ENGINE (Fixed Real-Time Bug) ---
+  // --- 5. HOST AUTOBOT ENGINE ---
   useEffect(() => {
     if (gameState !== "playing" || !isHost || !roomId) return;
 
     const botInterval = setInterval(async () => {
-      const currentPlayers = playersRef.current; // Grab the un-interrupted array
+      const currentPlayers = playersRef.current;
 
       const updates: any = {};
       currentPlayers.forEach(p => {
@@ -309,7 +312,6 @@ export default function KingdomSiegeArena() {
       }
     }, 1000);
 
-    // Removed `players` from this array so React stops deleting the interval
     return () => clearInterval(botInterval);
   }, [gameState, isHost, roomId]); 
 
@@ -360,12 +362,12 @@ export default function KingdomSiegeArena() {
     setSelectedPayload(null);
   };
 
-  // --- 7. CYBER MATRIX COMBAT ENGINE (Fixed Real-Time Bug) ---
+  // --- 7. CYBER MATRIX COMBAT ENGINE ---
   useEffect(() => {
     if (gameState !== "playing" || !roomId || !currentUser) return;
 
     const raidInterval = setInterval(async () => {
-      const currentRaids = raidsRef.current; // Un-interrupted array
+      const currentRaids = raidsRef.current;
       const currentPlayers = playersRef.current;
 
       if (currentRaids.length === 0) return;
@@ -453,7 +455,6 @@ export default function KingdomSiegeArena() {
       }
     }, 1000);
 
-    // Removed `raids` and `players` to prevent React from resetting the interval
     return () => clearInterval(raidInterval);
   }, [gameState, roomId, currentUser, isHost]);
 
@@ -513,28 +514,41 @@ export default function KingdomSiegeArena() {
         }
       `}</style>
 
-      <div className="p-4 border-b border-zinc-800 bg-zinc-950 flex justify-between items-center z-20 shrink-0">
-        <div className="flex items-center gap-4">
+      {/* HEADER: RESPONSIVE PADDING & TITLE */}
+      <div className="p-3 md:p-4 border-b border-zinc-800 bg-zinc-950 flex justify-between items-center z-20 shrink-0">
+        <div className="flex items-center gap-2 md:gap-4">
           {gameState !== "playing" && (
             <Button variant="outline" size="sm" asChild className="border-zinc-800 bg-zinc-900 text-zinc-300 h-8 text-xs">
-              <Link href="/learn/"><ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Labs</Link>
+              <Link href="/learn/"><ArrowLeft className="w-3.5 h-3.5 mr-1" /> <span className="hidden sm:inline">Back to </span>Labs</Link>
             </Button>
           )}
-          <h1 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">
-            Cyber Dominion: Siege Arena
+          <h1 className="text-sm sm:text-base md:text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500 truncate">
+            Cyber Dominion: <span className="hidden sm:inline">Siege Arena</span><span className="sm:hidden">Siege</span>
           </h1>
         </div>
+
         {gameState === "playing" && (
-          <div className="flex items-center gap-4 text-xs font-bold bg-black px-4 py-2 rounded-lg border border-zinc-800">
-            <span className="text-amber-400"><Zap className="w-3 h-3 inline" /> {userXp} XP</span>
+          <div className="flex items-center gap-2 md:gap-4 text-xs font-bold bg-black px-2 md:px-4 py-1.5 md:py-2 rounded-lg border border-zinc-800">
+            <span className="text-amber-400"><Zap className="w-3 h-3 inline" /> {userXp} <span className="hidden sm:inline">XP</span></span>
             <span className="text-zinc-600">|</span>
             <span className="text-red-400"><Clock className="w-3 h-3 inline" /> {Math.floor(matchTimer / 60)}:{String(matchTimer % 60).padStart(2, "0")}</span>
-            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-600 hidden md:inline">|</span>
+            
+            {/* MOBILE SIDEBAR TOGGLE BUTTON */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="md:hidden h-7 px-2 border-zinc-700 bg-zinc-900 text-amber-400"
+            >
+              <Menu className="w-4 h-4" />
+            </Button>
+
             <Button 
               disabled={!exitUnlocked}
               onClick={() => { update(ref(database, `rooms/${roomId}`), { status: "gameover" }); }}
               size="sm"
-              className={`h-6 text-[10px] ${exitUnlocked ? "bg-red-600 hover:bg-red-500 text-white cursor-pointer" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}`}
+              className={`hidden md:inline-flex h-6 text-[10px] ${exitUnlocked ? "bg-red-600 hover:bg-red-500 text-white cursor-pointer" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}`}
             >
               {exitUnlocked ? "Retreat" : "Locked (5m)"}
             </Button>
@@ -543,26 +557,26 @@ export default function KingdomSiegeArena() {
       </div>
 
       {gameState === "instructions" && (
-        <div className="flex-1 flex gamezone-dark-grid items-center justify-center p-6 overflow-y-auto">
+        <div className="flex-1 flex gamezone-dark-grid items-center justify-center p-4 md:p-6 overflow-y-auto">
           <div className="flex flex-col lg:flex-row gap-6 max-w-6xl w-full">
-            <div className="flex-1 p-8 bg-zinc-950/95 border border-amber-500/40 rounded-2xl shadow-2xl flex flex-col justify-between">
+            <div className="flex-1 p-6 md:p-8 bg-zinc-950/95 border border-amber-500/40 rounded-2xl shadow-2xl flex flex-col justify-between">
               <div>
-                <Trophy className="w-12 h-12 text-amber-500 mb-4" />
-                <h2 className="text-3xl font-black uppercase tracking-wider mb-2">Operation: Siege</h2>
-                <p className="text-sm text-zinc-400 mb-6">Command your department in live multiplayer rooms. Drop malware, defend your hub, and extract enemy XP.</p>
-                <ul className="text-sm text-zinc-300 space-y-4 mb-8">
+                <Trophy className="w-10 h-10 md:w-12 md:h-12 text-amber-500 mb-4" />
+                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-wider mb-2">Operation: Siege</h2>
+                <p className="text-xs md:text-sm text-zinc-400 mb-6">Command your department in live multiplayer rooms. Drop malware, defend your hub, and extract enemy XP.</p>
+                <ul className="text-xs md:text-sm text-zinc-300 space-y-3 md:space-y-4 mb-8">
                   <li className="flex items-start"><Users className="w-5 h-5 text-amber-400 mr-2 shrink-0"/> Matchmaking groups 5 live players. Missing slots are filled by Autobots.</li>
                   <li className="flex items-start"><Shield className="w-5 h-5 text-amber-400 mr-2 shrink-0"/> 4 consecutive defeats triggers a 60s Emergency Shield.</li>
                   <li className="flex items-start"><LogOut className="w-5 h-5 text-red-500 mr-2 shrink-0"/> <strong>DO NOT NAVIGATE AWAY.</strong> If you leave the page during a match, your city will be abandoned and you forfeit all XP gains.</li>
                   <li className="flex items-start"><Zap className="w-5 h-5 text-amber-400 mr-2 shrink-0"/> Wins grant +30 XP. Defeats cost -35 XP.</li>
                 </ul>
               </div>
-              <Button onClick={initializeMatchmakingRoom} className="w-full bg-amber-600 hover:bg-amber-500 text-black font-extrabold py-6 text-lg uppercase tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+              <Button onClick={initializeMatchmakingRoom} className="w-full bg-amber-600 hover:bg-amber-500 text-black font-extrabold py-5 md:py-6 text-base md:text-lg uppercase tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.4)]">
                 Enter the Arena
               </Button>
             </div>
-            <div className="flex-1 p-8 bg-zinc-900/90 border border-zinc-800 rounded-2xl shadow-xl flex flex-col justify-center">
-              <h3 className="text-xl font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center"><Brain className="w-6 h-6 mr-2"/> Cyber Matrix Field Guide</h3>
+            <div className="flex-1 p-6 md:p-8 bg-zinc-900/90 border border-zinc-800 rounded-2xl shadow-xl flex flex-col justify-center">
+              <h3 className="text-lg md:text-xl font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center"><Brain className="w-5 h-5 md:w-6 md:h-6 mr-2"/> Cyber Matrix Field Guide</h3>
               <p className="text-xs text-zinc-400 mb-6">Scout your enemies to determine their active defense stance. Select the correct payload to breach them.</p>
               <div className="space-y-4">
                 <div className="bg-black/60 p-4 rounded-xl border-l-4 border-red-500">
@@ -585,14 +599,13 @@ export default function KingdomSiegeArena() {
 
       {/* STATE 1: LOBBY */}
       {gameState === "lobby" && (
-        <div className="flex-1 flex gamezone-dark-grid items-center justify-center p-6">
-          <div className="max-w-md w-full p-8 bg-zinc-950/90 border border-amber-500/30 rounded-2xl text-center shadow-2xl backdrop-blur-md">
+        <div className="flex-1 flex gamezone-dark-grid items-center justify-center p-4">
+          <div className="max-w-md w-full p-6 md:p-8 bg-zinc-950/90 border border-amber-500/30 rounded-2xl text-center shadow-2xl backdrop-blur-md">
             <Users className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-pulse" />
             <h2 className="text-xl font-bold mb-2">Staging War Room</h2>
             <div className="text-4xl font-mono text-amber-400 py-4">00:{String(lobbyTimer).padStart(2, "0")}</div>
             <p className="text-xs text-zinc-400 mb-6">Matchroom Connected Players: <strong className="text-cyan-400">{players.filter(p=>!p.isBot && p.status !== "disconnected").length} / 5</strong></p>
             
-            {/* NEW: Force Start Button for the Host */}
             {isHost ? (
               <Button 
                 onClick={() => update(ref(database, `rooms/${roomId}`), { status: "playing" })} 
@@ -610,16 +623,31 @@ export default function KingdomSiegeArena() {
       )}
 
       {gameState === "playing" && (
-        <div className="flex-1 flex overflow-hidden relative">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
           {centerMessage && (
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-xl shadow-2xl font-bold text-xs animate-bounce border border-red-400">
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl shadow-2xl font-bold text-xs animate-bounce border border-red-400 text-center max-w-[90%]">
               {centerMessage}
             </div>
           )}
 
-          <div className="w-80 bg-zinc-950 border-r border-zinc-800 p-4 flex flex-col space-y-4 shrink-0 z-20">
+          {/* SIDEBAR: RESPONSIVE DRAWER ON MOBILE, FIXED COLUMN ON DESKTOP */}
+          <div className={`
+            absolute md:relative inset-y-0 left-0 z-40
+            w-72 sm:w-80 bg-zinc-950 border-r border-zinc-800 p-4 
+            flex flex-col space-y-4 shrink-0 
+            transition-transform duration-300 ease-in-out
+            ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          `}>
+            {/* MOBILE CLOSE BUTTON INSIDE SIDEBAR */}
+            <div className="flex justify-between items-center md:hidden pb-2 border-b border-zinc-800">
+              <span className="text-xs font-bold text-amber-400 uppercase">Command Panel</span>
+              <Button size="icon" variant="ghost" onClick={() => setIsMobileSidebarOpen(false)} className="h-7 w-7 text-zinc-400">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
             <div className="p-3 bg-amber-950/20 border border-amber-500/30 rounded-xl space-y-2">
-              <h3 className="font-bold text-sm text-white">{currentUser?.displayName || "Operative"}</h3>
+              <h3 className="font-bold text-sm text-white truncate">{currentUser?.displayName || "Operative"}</h3>
               <p className="text-xs text-amber-400">Power: {userXp} XP</p>
               
               <div className="pt-2 border-t border-zinc-900">
@@ -666,12 +694,23 @@ export default function KingdomSiegeArena() {
                 ))}
               </div>
             </div>
+
+            {/* MOBILE RETREAT BUTTON */}
+            <div className="md:hidden pt-2">
+              <Button 
+                disabled={!exitUnlocked}
+                onClick={() => { update(ref(database, `rooms/${roomId}`), { status: "gameover" }); }}
+                className={`w-full h-8 text-xs ${exitUnlocked ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500"}`}
+              >
+                {exitUnlocked ? "Retreat / End Match" : "Retreat Locked (5m)"}
+              </Button>
+            </div>
           </div>
 
           <div className="flex-1 relative overflow-hidden animated-kingdom-map">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] pointer-events-none"></div>
 
-            <div className="absolute top-4 right-4 w-80 z-30 space-y-2 pointer-events-none">
+            <div className="absolute top-4 right-4 w-72 sm:w-80 z-30 space-y-2 pointer-events-none">
               {raids.filter(r => r.attackerId === currentUser?.uid || r.targetId === currentUser?.uid).map(r => {
                 const isIncoming = r.targetId === currentUser?.uid;
                 return (
@@ -769,16 +808,16 @@ export default function KingdomSiegeArena() {
                   style={{ left: `${p.x}%`, top: `${p.y}%` }}
                   onClick={() => { if (!isDisconnected) setSelectedTarget(p); }}
                 >
-                  <div className={`w-16 h-20 rounded-t-lg flex flex-col items-center justify-end pb-2 relative transition-transform ${!isDisconnected && 'hover:-translate-y-2'}
+                  <div className={`w-14 h-16 md:w-16 md:h-20 rounded-t-lg flex flex-col items-center justify-end pb-2 relative transition-transform ${!isDisconnected && 'hover:-translate-y-2'}
                     ${isSelf ? 'bg-amber-900 border-t-2 border-amber-400 shadow-[0_15px_0_0_#451a03,0_20px_20px_rgba(245,158,11,0.4)]' 
                              : 'bg-zinc-800 border-t-2 border-red-500 shadow-[0_15px_0_0_#27272a,0_20px_20px_rgba(239,68,68,0.3)]'}
                   `}>
-                    {p.shieldTimer > 0 && <div className="absolute -top-4 w-20 h-24 rounded-t-full border-2 border-cyan-500 bg-cyan-500/10 pointer-events-none" />}
-                    {isSelf ? <Shield className="w-6 h-6 text-amber-400 z-10" /> : <Server className="w-6 h-6 text-red-400 z-10" />}
+                    {p.shieldTimer > 0 && <div className="absolute -top-4 w-16 md:w-20 h-20 md:h-24 rounded-t-full border-2 border-cyan-500 bg-cyan-500/10 pointer-events-none" />}
+                    {isSelf ? <Shield className="w-5 h-5 md:w-6 md:h-6 text-amber-400 z-10" /> : <Server className="w-5 h-5 md:w-6 md:h-6 text-red-400 z-10" />}
                   </div>
 
-                  <div className="mt-6 bg-black/90 px-2 py-1 rounded border border-zinc-800 text-center z-20 shadow-lg">
-                    <span className="text-[10px] font-bold text-white block">{isDisconnected ? "Abandoned" : p.name}</span>
+                  <div className="mt-4 md:mt-6 bg-black/90 px-2 py-0.5 md:py-1 rounded border border-zinc-800 text-center z-20 shadow-lg max-w-[120px] truncate">
+                    <span className="text-[9px] md:text-[10px] font-bold text-white block truncate">{isDisconnected ? "Abandoned" : p.name}</span>
                   </div>
                 </div>
               );
@@ -829,8 +868,8 @@ export default function KingdomSiegeArena() {
 
       {/* STATE 5: GAME OVER */}
       {gameState === "gameover" && (
-        <div className="flex-1 flex gamezone-dark-grid items-center justify-center p-6 overflow-y-auto">
-          <div className="max-w-md w-full p-8 bg-zinc-950/90 border border-zinc-800 rounded-2xl text-center shadow-2xl backdrop-blur-md">
+        <div className="flex-1 flex gamezone-dark-grid items-center justify-center p-4 md:p-6 overflow-y-auto">
+          <div className="max-w-md w-full p-6 md:p-8 bg-zinc-950/90 border border-zinc-800 rounded-2xl text-center shadow-2xl backdrop-blur-md">
             <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">Siege Concluded</h2>
             <div className="bg-zinc-900/90 p-4 rounded-xl space-y-2 text-xs font-mono mb-6 border border-zinc-800">
