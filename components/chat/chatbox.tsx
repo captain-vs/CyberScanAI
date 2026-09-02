@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
-import { MessageSquare, Bot, User, Minimize2, Send, ArrowLeft } from "lucide-react"
+import { MessageSquare, Bot, User, Minimize2, Send, ArrowLeft, UserPlus, ShieldCheck } from "lucide-react"
 import { predefinedQA } from "./predefined-qa"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -14,12 +14,13 @@ import {
   collection, 
   query, 
   onSnapshot, 
+  doc, 
+  getDocs, 
+  where, 
+  writeBatch, 
   addDoc, 
-  serverTimestamp,
-  doc,
-  getDocs,
-  where,
-  writeBatch
+  serverTimestamp, 
+  updateDoc 
 } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
 
@@ -28,6 +29,7 @@ type OperatorUser = {
   name: string
   level: number
   avatarUrl?: string
+  profileVisibility?: "public" | "private"
 }
 
 type Message = {
@@ -42,14 +44,11 @@ type Message = {
 export function ChatBox() {
   const pathname = usePathname()
 
-  // 1. ALL HOOKS DECLARED UNCONDITIONALLY AT THE TOP
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [authChecking, setAuthChecking] = useState(true)
   const [open, setOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [activeChatTarget, setActiveChatTarget] = useState<"ai" | OperatorUser>("ai")
-  
-  // Mobile UI View Switcher state for responsive split-view (sidebar vs active chat)
   const [mobileView, setMobileView] = useState<"sidebar" | "chat">("sidebar")
   
   // AI Chat States
@@ -65,13 +64,13 @@ export function ChatBox() {
   const [isTyping, setIsTyping] = useState(false)
 
   // Peer-to-Peer Operator Chat States
-  const [connectedOperators, setConnectedOperators] = useState<OperatorUser[]>([])
+  const [myConnections, setMyConnections] = useState<string[]>([])
+  const [allOperatorsMap, setAllOperatorsMap] = useState<Record<string, OperatorUser>>({})
   const [allMessagesMap, setAllMessagesMap] = useState<Record<string, Message[]>>({})
   const [peerMessages, setPeerMessages] = useState<Message[]>([])
 
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
-  // Track authentication state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user)
@@ -88,9 +87,9 @@ export function ChatBox() {
 
     (window as any).__openChatWithUser = async (targetUid: string) => {
       setOpen(true)
-      const found = connectedOperators.find(o => o.uid === targetUid)
-      if (found) {
-        setActiveChatTarget(found)
+      const op = allOperatorsMap[targetUid]
+      if (op) {
+        setActiveChatTarget(op)
         setMobileView("chat")
         markMessagesAsRead(targetUid)
       } else {
@@ -98,12 +97,14 @@ export function ChatBox() {
           const userDoc = await getDocs(query(collection(db, "users"), where("__name__", "==", targetUid)))
           if (!userDoc.empty) {
             const dData = userDoc.docs[0].data()
-            setActiveChatTarget({
+            const targetOp: OperatorUser = {
               uid: targetUid,
               name: dData.name || "Operator",
               level: dData.stats?.level || 1,
-              avatarUrl: dData.avatarUrl || ""
-            })
+              avatarUrl: dData.avatarUrl || "",
+              profileVisibility: dData.profileVisibility || "public"
+            }
+            setActiveChatTarget(targetOp)
             setMobileView("chat")
             markMessagesAsRead(targetUid)
           }
@@ -112,33 +113,35 @@ export function ChatBox() {
         }
       }
     }
-  }, [connectedOperators])
+  }, [allOperatorsMap])
 
-  // Auth & Firestore real-time sync for connections and messaging
+  // Auth & Firestore real-time sync
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (!user) return
       setCurrentUser(user)
 
       const unsubUsers = onSnapshot(collection(db, "users"), (snap) => {
-        const userDoc = snap.docs.find(d => d.id === user.uid)
-        if (!userDoc) return
-        const myData = userDoc.data()
-        const myConnections: string[] = myData.connections || []
+        const opsMap: Record<string, OperatorUser> = {}
+        let connectionsList: string[] = []
 
-        const ops: OperatorUser[] = []
         snap.forEach(d => {
-          if (d.id !== user.uid && myConnections.includes(d.id)) {
-            const dData = d.data()
-            ops.push({
+          const dData = d.data()
+          if (d.id === user.uid) {
+            connectionsList = dData.connections || []
+          } else {
+            opsMap[d.id] = {
               uid: d.id,
               name: dData.name || "Operator",
               level: dData.stats?.level || 1,
-              avatarUrl: dData.avatarUrl || ""
-            })
+              avatarUrl: dData.avatarUrl || "",
+              profileVisibility: dData.profileVisibility || "public"
+            }
           }
         })
-        setConnectedOperators(ops)
+
+        setMyConnections(connectionsList)
+        setAllOperatorsMap(opsMap)
       }, (err) => {
         if (auth.currentUser) console.warn("Users listener note:", err)
       })
@@ -207,6 +210,29 @@ export function ChatBox() {
     }
   }
 
+  const handleConnectBack = async (targetOp: OperatorUser) => {
+    if (!currentUser) return
+    const myUid = currentUser.uid
+
+    const updatedMyConnections = [...myConnections, targetOp.uid]
+    await updateDoc(doc(db, "users", myUid), { connections: updatedMyConnections })
+    setMyConnections(updatedMyConnections)
+
+    try {
+      const targetRef = doc(db, "users", targetOp.uid)
+      const targetSnap = await getDocs(query(collection(db, "users"), where("__name__", "==", targetOp.uid)))
+      if (!targetSnap.empty) {
+        const targetData = targetSnap.docs[0].data()
+        const targetConns = targetData.connections || []
+        if (!targetConns.includes(myUid)) {
+          await updateDoc(targetRef, { connections: [...targetConns, myUid] })
+        }
+      }
+    } catch (err) {
+      console.warn("Mutual connect back error:", err)
+    }
+  }
+
   const handleSend = async () => {
     const text = input.trim()
     if (!text) return
@@ -269,10 +295,21 @@ export function ChatBox() {
     return acc + list.filter(m => m.senderUid === partnerUid && !m.read).length
   }, 0)
 
-  // 2. CONDITIONAL RETURN PLACED AFTER ALL HOOKS
+  // Sidebar list: Include connected operators AND any operator who has an active message history with us
+  const sidebarOperatorUids = Array.from(new Set([
+    ...myConnections,
+    ...Object.keys(allMessagesMap)
+  ]))
+
+  const sidebarOperators = sidebarOperatorUids
+    .map(uid => allOperatorsMap[uid])
+    .filter(Boolean) as OperatorUser[]
+
   if (pathname.startsWith("/auth") || authChecking || !isLoggedIn) {
     return null
   }
+
+  const isConnectedToActiveTarget = activeChatTarget === "ai" || myConnections.includes(activeChatTarget.uid)
 
   return (
     <>
@@ -308,7 +345,7 @@ export function ChatBox() {
           >
             <Card className="flex h-[82vh] md:h-[550px] overflow-hidden border-lime-500/30 bg-[#0a0f18]/95 backdrop-blur-xl shadow-2xl rounded-2xl">
               
-              {/* LEFT SIDEBAR: AI ASSISTANT + CONNECTED OPERATORS */}
+              {/* LEFT SIDEBAR */}
               <div className={`w-full md:w-1/3 bg-slate-900/90 border-r border-slate-800 flex flex-col font-mono ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}>
                 <div className="p-3.5 border-b border-slate-800 text-xs text-white font-bold flex items-center justify-between">
                   <span>Communications Hub</span>
@@ -339,12 +376,12 @@ export function ChatBox() {
                     </div>
                   </button>
 
-                  <div className="pt-2 pb-1 px-2 text-[10px] uppercase tracking-wider text-slate-500">Connected Operators</div>
+                  <div className="pt-2 pb-1 px-2 text-[10px] uppercase tracking-wider text-slate-500">Operator Inbox</div>
 
-                  {connectedOperators.length === 0 ? (
-                    <div className="text-center p-3 text-slate-500 text-[11px]">No active connections.</div>
+                  {sidebarOperators.length === 0 ? (
+                    <div className="text-center p-3 text-slate-500 text-[11px]">No active conversations.</div>
                   ) : (
-                    connectedOperators.map(op => {
+                    sidebarOperators.map(op => {
                       const isSelected = activeChatTarget !== "ai" && activeChatTarget.uid === op.uid
                       const chatList = allMessagesMap[op.uid] || []
                       const lastMsg = chatList[chatList.length - 1]
@@ -387,7 +424,6 @@ export function ChatBox() {
                 
                 <div className="flex items-center justify-between p-3.5 border-b border-lime-500/20 bg-lime-500/5">
                   <div className="flex items-center gap-3 font-mono">
-                    {/* Mobile Back to Sidebar Button */}
                     <button 
                       onClick={() => setMobileView("sidebar")}
                       className="md:hidden text-slate-400 hover:text-white transition-colors p-1 mr-1"
@@ -425,6 +461,7 @@ export function ChatBox() {
                   </button>
                 </div>
 
+                {/* MESSAGES VIEW (Visible to read regardless of connection state) */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar font-mono text-xs">
                   {activeChatTarget === "ai" ? (
                     aiMessages.map((m, i) => (
@@ -481,21 +518,35 @@ export function ChatBox() {
                   <div ref={bottomRef} />
                 </div>
 
+                {/* INPUT BAR OR CONNECT-BACK BAR */}
                 <div className="p-3 border-t border-slate-800 bg-slate-900/50">
-                  <form 
-                    onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-                    className="flex gap-2"
-                  >
-                    <Input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder={activeChatTarget === "ai" ? "Ask AI command..." : "Type secure message..."}
-                      className="bg-slate-950 border-slate-800 focus:border-lime-500/50 text-white placeholder:text-slate-600 font-mono text-xs"
-                    />
-                    <Button type="submit" size="icon" className="bg-lime-500 hover:bg-lime-400 text-black h-9 w-9 shrink-0">
-                      <Send className="h-3.5 w-3.5" />
-                    </Button>
-                  </form>
+                  {isConnectedToActiveTarget ? (
+                    <form 
+                      onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                      className="flex gap-2"
+                    >
+                      <Input
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder={activeChatTarget === "ai" ? "Ask AI command..." : "Type secure message..."}
+                        className="bg-slate-950 border-slate-800 focus:border-lime-500/50 text-white placeholder:text-slate-600 font-mono text-xs"
+                      />
+                      <Button type="submit" size="icon" className="bg-lime-500 hover:bg-lime-400 text-black h-9 w-9 shrink-0">
+                        <Send className="h-3.5 w-3.5" />
+                      </Button>
+                    </form>
+                  ) : (
+                    <div className="flex items-center justify-between bg-slate-950 px-3 py-2 rounded-lg border border-cyan-500/30 font-mono text-xs">
+                      <span className="text-slate-400 text-[11px]">Connect back to reply</span>
+                      <Button
+                        size="sm"
+                        onClick={() => handleConnectBack(activeChatTarget as OperatorUser)}
+                        className="bg-cyan-500 text-black hover:bg-cyan-400 font-bold h-7 text-xs"
+                      >
+                        <UserPlus className="h-3 w-3 mr-1" /> Connect Back
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
               </div>

@@ -1074,6 +1074,7 @@ function ProfileContent() {
                         const isConnected = connections.includes(op.uid)
                         const isPrivate = op.profileVisibility === "private"
                         const sentReq = sentRequests.find(r => r.receiverUid === op.uid && r.status === 'pending')
+                        const incomingReq = incomingRequests.find(r => r.senderUid === op.uid && r.status === 'pending')
 
                         const chatWithOp = allMessagesMap[op.uid] || []
                         const unreadFromOp = chatWithOp.filter(m => m.senderUid === op.uid && !m.read).length
@@ -1127,47 +1128,57 @@ function ProfileContent() {
                                 </span>
 
                                 <div className="flex items-center gap-2">
-                                  {isConnected ? (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setViewingOperator(op)}
-                                        className="border-lime-500/40 text-lime-400 bg-lime-500/10 text-[11px] h-7 px-2.5 hover:bg-lime-500/20"
-                                      >
-                                        <UserCheck className="h-3.5 w-3.5 mr-1 inline" /> Dossier
-                                      </Button>
-                                      <Button 
-                                        size="sm" 
-                                        onClick={() => {
-                                          if ((window as any).__openChatWithUser) {
-                                            (window as any).__openChatWithUser(op.uid);
-                                          }
-                                        }} 
-                                        className="bg-cyan-500 text-black hover:bg-cyan-400 font-bold text-xs shadow-[0_0_15px_rgba(6,182,212,0.3)] relative h-7 px-2.5"
-                                      >
-                                        <MessageSquare className="h-3.5 w-3.5 mr-1" /> Chat
-                                        {unreadFromOp > 0 && (
-                                          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border border-slate-950 animate-pulse">
-                                            {unreadFromOp}
-                                          </span>
-                                        )}
-                                      </Button>
-                                    </>
-                                  ) : sentReq ? (
-                                    <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/30">
-                                      Request Sent
-                                    </span>
-                                  ) : (
-                                    <Button 
-                                      size="sm" 
-                                      onClick={() => handleConnect(op)}
-                                      className="bg-lime-500/10 border border-lime-500/40 text-lime-400 hover:bg-lime-500/20 text-xs"
-                                    >
-                                      <UserPlus className="h-3.5 w-3.5 mr-1.5" /> {isPrivate ? "Send Request" : "Connect"}
-                                    </Button>
-                                  )}
-                                </div>
+  {isConnected ? (
+    <>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => setViewingOperator(op)}
+        className="border-lime-500/40 text-lime-400 bg-lime-500/10 text-[11px] h-7 px-2.5 hover:bg-lime-500/20"
+      >
+        <UserCheck className="h-3.5 w-3.5 mr-1 inline" /> Dossier
+      </Button>
+      <Button 
+        size="sm" 
+        onClick={() => {
+          if ((window as any).__openChatWithUser) {
+            (window as any).__openChatWithUser(op.uid);
+          }
+        }} 
+        className="bg-cyan-500 text-black hover:bg-cyan-400 font-bold text-xs shadow-[0_0_15px_rgba(6,182,212,0.3)] relative h-7 px-2.5"
+      >
+        <MessageSquare className="h-3.5 w-3.5 mr-1" /> Chat
+        {unreadFromOp > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border border-slate-950 animate-pulse">
+            {unreadFromOp}
+          </span>
+        )}
+      </Button>
+    </>
+  ) : incomingReq ? (
+    /* ✅ NEW: Trigger handleAcceptRequest when they click Connect Back */
+    <Button 
+      size="sm" 
+      onClick={() => handleAcceptRequest(incomingReq)}
+      className="bg-amber-500 text-black hover:bg-amber-400 font-bold text-xs relative animate-pulse"
+    >
+      <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Connect Back
+      <span className="absolute -top-1.5 -right-1.5 bg-red-600 h-3 w-3 rounded-full" />
+    </Button>
+  ) : sentReq ? (
+    <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/30">
+      Request Sent
+    </span>
+  ) : (
+    <Button 
+      size="sm" 
+      onClick={() => handleConnect(op)}
+      className="bg-lime-500/10 border border-lime-500/40 text-lime-400 hover:bg-lime-500/20 text-xs"
+    >
+      <UserPlus className="h-3.5 w-3.5 mr-1.5" /> {isPrivate ? "Send Request" : "Connect"}
+    </Button>
+  )}
+</div>
                               </div>
 
                             </div>
