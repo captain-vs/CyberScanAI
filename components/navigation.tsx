@@ -136,11 +136,29 @@ export function Navigation() {
     }
   }, [user?.uid])
 
+  // 🪟 WINDOWS TASKBAR BADGING API INTEGRATION
+  const totalAlerts = unreadCount + pendingReqCount
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    if ('setAppBadge' in navigator) {
+      if (totalAlerts > 0) {
+        navigator.setAppBadge(totalAlerts).catch((err) => {
+          console.warn("App badge update error:", err)
+        })
+      } else {
+        navigator.clearAppBadge().catch((err) => {
+          console.warn("App badge clear error:", err)
+        })
+      }
+    }
+  }, [totalAlerts])
+
   const handleToggleNotifications = async () => {
     const nextState = !showNotifications
     setShowNotifications(nextState)
 
-    // When opening notifications, clear unread messages badge instantly
     if (nextState && user && unreadCount > 0) {
       setUnreadCount(0)
       try {
@@ -173,8 +191,6 @@ export function Navigation() {
 
   if (pathname.startsWith("/auth")) return null
   if (loading) return null
-
-  const totalAlerts = unreadCount + pendingReqCount
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
@@ -210,10 +226,10 @@ export function Navigation() {
                 )
               })}
             </nav>
+            
 
-            {/* Right side controls: Notification bell is now visible on both mobile and desktop */}
+            {/* Right side controls */}
             <div className="flex items-center gap-2 md:gap-3">
-              
               <div className="relative" ref={notifRef}>
                 <Button 
                   variant="outline" 

@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Navigation } from "@/components/navigation"
+import { CyberTransitionProvider } from "@/components/cyber-transition"
 import AppShell from "@/components/app-shell"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 import { ChatBox } from "@/components/chat/chatbox"
@@ -94,6 +95,7 @@ export default function RootLayout({
         
         {/* Top Navigation Bar */}
         <Navigation />
+        
         <ServiceWorkerRegistration />
         {/* Main Content */}
         {children}
