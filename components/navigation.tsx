@@ -35,6 +35,7 @@ import { auth, db } from "@/lib/firebase"
 import { onAuthStateChanged, signOut } from "firebase/auth"
 import { collection, query, where, onSnapshot, doc, getDocs, writeBatch } from "firebase/firestore"
 import { motion, AnimatePresence } from "framer-motion"
+import { requestNotificationPermission } from "@/lib/notifications" // Optional helper reference
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -92,6 +93,9 @@ export function Navigation() {
           email: firebaseUser.email || "",
           avatarUrl: ""
         })
+
+        // Request background push permissions on successful login
+        requestNotificationPermission(firebaseUser.uid)
 
         const userDocRef = doc(db, "users", firebaseUser.uid)
         const unsubDoc = onSnapshot(userDocRef, (snap) => {

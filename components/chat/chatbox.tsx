@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
-import { MessageSquare, Bot, User, Minimize2, Send, ArrowLeft, UserPlus, ShieldCheck } from "lucide-react"
+import { MessageSquare, Bot, User, Minimize2, Send, ArrowLeft, UserPlus, ShieldCheck, Check, CheckCheck } from "lucide-react"
 import { predefinedQA } from "./predefined-qa"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -53,11 +53,12 @@ export function ChatBox() {
   
   // AI Chat States
   const [aiMessages, setAiMessages] = useState<
-    { role: "user" | "bot"; text: string }[]
+    { role: "user" | "bot"; text: string; time?: string }[]
   >([
     {
       role: "bot",
       text: "System Online. I am the Cyber Assistant. How can I assist with your mission?",
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     },
   ])
   const [input, setInput] = useState("")
@@ -237,8 +238,10 @@ export function ChatBox() {
     const text = input.trim()
     if (!text) return
 
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
     if (activeChatTarget === "ai") {
-      setAiMessages((prev) => [...prev, { role: "user", text }])
+      setAiMessages((prev) => [...prev, { role: "user", text, time: timeString }])
       setInput("")
       setIsTyping(true)
 
@@ -248,7 +251,7 @@ export function ChatBox() {
 
       if (predefined) {
         setTimeout(() => {
-          setAiMessages((prev) => [...prev, { role: "bot", text: predefined.answer }])
+          setAiMessages((prev) => [...prev, { role: "bot", text: predefined.answer, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }])
           setIsTyping(false)
         }, 600)
         return
@@ -262,11 +265,11 @@ export function ChatBox() {
         })
         const data = await res.json()
         if (!res.ok) throw new Error("AI failed")
-        setAiMessages((prev) => [...prev, { role: "bot", text: data.answer }])
+        setAiMessages((prev) => [...prev, { role: "bot", text: data.answer, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }])
       } catch {
         setAiMessages((prev) => [
           ...prev,
-          { role: "bot", text: "Connection severed. AI mainframe unavailable." },
+          { role: "bot", text: "Connection severed. AI mainframe unavailable.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
         ])
       } finally {
         setIsTyping(false)
@@ -290,12 +293,19 @@ export function ChatBox() {
     }
   }
 
+  const formatTimestamp = (timestamp: any) => {
+    if (!timestamp) return ""
+    const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp)
+    if (isNaN(date.getTime())) return ""
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
   const totalUnread = Object.keys(allMessagesMap).reduce((acc, partnerUid) => {
     const list = allMessagesMap[partnerUid] || []
     return acc + list.filter(m => m.senderUid === partnerUid && !m.read).length
   }, 0)
 
-  // Sidebar list: Include connected operators AND any operator who has an active message history with us
+  // Sidebar list: sorted dynamically so conversations with the most recent messages appear at the top
   const sidebarOperatorUids = Array.from(new Set([
     ...myConnections,
     ...Object.keys(allMessagesMap)
@@ -304,6 +314,14 @@ export function ChatBox() {
   const sidebarOperators = sidebarOperatorUids
     .map(uid => allOperatorsMap[uid])
     .filter(Boolean) as OperatorUser[]
+
+  sidebarOperators.sort((a, b) => {
+    const listA = allMessagesMap[a.uid] || []
+    const listB = allMessagesMap[b.uid] || []
+    const lastA = listA[listA.length - 1]?.timestamp?.toMillis ? listA[listA.length - 1].timestamp.toMillis() : 0
+    const lastB = listB[listB.length - 1]?.timestamp?.toMillis ? listB[listB.length - 1].timestamp.toMillis() : 0
+    return lastB - lastA // Most recent first
+  })
 
   if (pathname.startsWith("/auth") || authChecking || !isLoggedIn) {
     return null
@@ -461,7 +479,7 @@ export function ChatBox() {
                   </button>
                 </div>
 
-                {/* MESSAGES VIEW (Visible to read regardless of connection state) */}
+                {/* MESSAGES VIEW */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar font-mono text-xs">
                   {activeChatTarget === "ai" ? (
                     aiMessages.map((m, i) => (
@@ -476,7 +494,12 @@ export function ChatBox() {
                             ? "bg-purple-500/10 border border-purple-500/20 text-purple-100 rounded-tr-none font-sans" 
                             : "bg-lime-500/10 border border-lime-500/20 text-lime-100 rounded-tl-none font-sans"
                         }`}>
-                          {m.text}
+                          <div>{m.text}</div>
+                          {m.time && (
+                            <div className="text-[9px] text-right mt-1 opacity-70 font-mono">
+                              {m.time}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
@@ -490,12 +513,26 @@ export function ChatBox() {
                     ) : (
                       peerMessages.map((msg) => {
                         const isMe = msg.senderUid === currentUser?.uid
+                        const timeStr = formatTimestamp(msg.timestamp)
+
                         return (
                           <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                             <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
-                              isMe ? 'bg-lime-500 text-black font-semibold rounded-br-none' : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-bl-none'
+                              isMe ? 'bg-slate-800 text-white border border-slate-700 font-semibold rounded-br-none' : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-bl-none'
                             }`}>
-                              {msg.text}
+                              <div className="break-words">{msg.text}</div>
+                              <div className={`flex items-center justify-end gap-1.5 mt-1 text-[9px] ${isMe ? 'text-white/70' : 'text-slate-400'}`}>
+                                <span>{timeStr}</span>
+                                {isMe && (
+                                  <span>
+                                    {msg.read ? (
+                                      <CheckCheck className="h-3 w-3 text-blue-600 inline" />
+                                    ) : (
+                                      <Check className="h-3 w-3 inline opacity-70" />
+                                    )}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )

@@ -6,7 +6,8 @@ import {
   persistentLocalCache, 
   persistentMultipleTabManager 
 } from "firebase/firestore";
-import { getDatabase } from "firebase/database"; // <-- Added import
+import { getDatabase } from "firebase/database";
+import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -72,4 +73,19 @@ try {
   console.error("❌ Realtime Database initialization failed:", error);
 }
 
-export { auth, db, database };
+// 5. ENABLE FIREBASE MESSAGING (Client-side notifications)
+let messaging: any = null;
+try {
+  if (app && typeof window !== "undefined") {
+    isSupported().then((supported) => {
+      if (supported) {
+        messaging = getMessaging(app);
+        console.log("✅ Firebase Messaging initialized successfully");
+      }
+    });
+  }
+} catch (error) {
+  console.error("❌ Firebase Messaging initialization failed:", error);
+}
+
+export { auth, db, database, messaging };
