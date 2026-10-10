@@ -7,7 +7,7 @@ import { Navigation } from "@/components/navigation"
 import AppShell from "@/components/app-shell"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 import { ChatBox } from "@/components/chat/chatbox"
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 // 1. Configure Fonts
 const geist = Geist({
   subsets: ["latin"],
@@ -105,6 +105,7 @@ export default function RootLayout({
         
         {/* Vercel Analytics */}
         <Analytics />
+        <SpeedInsights />
         
       </body>
     </html>
