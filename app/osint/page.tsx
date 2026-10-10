@@ -25,8 +25,8 @@ import { CyberWrapper } from "@/components/cyber-wrapper"
 
 const tools = [
   {
-    name: "Dark Web Monitoring",
-    description: "Check if an email appears in known data breaches.",
+    name: "Breach Exposure Simulator",
+    description: "Learn how breach reports are presented using generated scenarios.",
     href: "/osint/darkweb",
     icon: ShieldAlert,
     color: "text-red-500",
@@ -34,8 +34,8 @@ const tools = [
     bgGlow: "group-hover:shadow-[0_0_20px_-5px_rgba(239,68,68,0.3)]"
   },
   {
-    name: "WHOIS Lookup",
-    description: "Retrieve domain registration and ownership data.",
+    name: "WHOIS Report Simulator",
+    description: "Explore the structure of domain-registration reports.",
     href: "/osint/whois",
     icon: Globe,
     color: "text-cyan-400",
@@ -43,8 +43,8 @@ const tools = [
     bgGlow: "group-hover:shadow-[0_0_20px_-5px_rgba(34,211,238,0.3)]"
   },
   {
-    name: "DNS Recon",
-    description: "Explore DNS records like A, MX, TXT, and NS.",
+    name: "DNS Record Simulator",
+    description: "Practice reading example A, MX, TXT, NS, and SOA records.",
     href: "/osint/dns",
     icon: Server,
     color: "text-lime-400",
@@ -52,8 +52,8 @@ const tools = [
     bgGlow: "group-hover:shadow-[0_0_20px_-5px_rgba(163,230,53,0.3)]"
   },
   {
-    name: "Metadata Extractor",
-    description: "Analyze files for hidden metadata information.",
+    name: "Metadata Learning Lab",
+    description: "See examples of metadata fields that may expose sensitive information.",
     href: "/osint/metadata",
     icon: FileSearch,
     color: "text-yellow-400",
@@ -61,8 +61,8 @@ const tools = [
     bgGlow: "group-hover:shadow-[0_0_20px_-5px_rgba(250,204,21,0.3)]"
   },
   {
-    name: "Social Media Checker",
-    description: "Find public social profiles linked to a username.",
+    name: "Social Footprint Simulator",
+    description: "Learn how analysts compare public-profile indicators.",
     href: "/osint/social",
     icon: Users,
     color: "text-purple-400",
@@ -70,8 +70,8 @@ const tools = [
     bgGlow: "group-hover:shadow-[0_0_20px_-5px_rgba(192,132,252,0.3)]"
   },
   {
-    name: "Email Harvester",
-    description: "Discover publicly available emails for a domain.",
+    name: "Email Pattern Simulator",
+    description: "Learn common corporate email-pattern formats without collecting real addresses.",
     href: "/osint/email",
     icon: Mail,
     color: "text-orange-400",
@@ -100,7 +100,9 @@ export default function OSINTHub() {
               OSINT <span className="text-cyan-400">Hub</span>
             </h1>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Advanced reconnaissance tools for ethical research and defensive awareness.
+              Interactive OSINT learning simulations that show how defensive investigations
+  and exposure reports are structured. Results are generated training scenarios,
+  not live intelligence.
             </p>
           </motion.div>
 

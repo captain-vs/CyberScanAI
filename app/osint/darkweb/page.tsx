@@ -39,9 +39,10 @@ export default function DarkWebPage() {
         <div className="inline-flex items-center justify-center p-3 rounded-full bg-red-500/10 mb-4">
            <ShieldAlert className="h-10 w-10 text-red-500" />
         </div>
-        <h1 className="text-4xl font-bold mb-2">Dark Web Intelligence</h1>
+        <h1 className="text-4xl font-bold mb-2">Breach Exposure Simulator</h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Scan credible threat intelligence feeds to detect if an email has been compromised in known data breaches.
+          This learning tool generates a fictional breach-report scenario from your
+          input. It does not query breach databases or confirm real compromises.
         </p>
       </div>
 
@@ -58,9 +59,9 @@ export default function DarkWebPage() {
               {loading ? "Scanning..." : "Scan"}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
+          <p className="text-xs text-amber-400 mt-3 flex items-center gap-1">
             <Info className="h-3 w-3" />
-            <span>Standard Protocol: Hash-based lookup for privacy protection.</span>
+            <span>Training simulation only — do not use results for security decisions.</span>
           </p>
         </CardContent>
       </Card>

@@ -8,7 +8,7 @@ import {
   Download, Terminal as TerminalIcon, AlertTriangle, CheckCircle2, XCircle, Cpu,
   Map, ChevronRight, Ghost, Eye, Check, Copy, Bug, Clock
 } from "lucide-react"
-
+import MD5 from "crypto-js/md5"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -190,7 +190,7 @@ function ScanContent() {
       clearInterval(interval)
       setProgress(100)
 
-      if (data.status === "Malicious") addLog("error", "THREAT DETECTED! Signature match.")
+      if (data.status === "Malicious") addLog("error", "Risk indicators identified by the analysis model.")
       else if (data.status === "Warning") addLog("warning", "Suspicious patterns identified.")
       else addLog("success", "Scan complete. No threats found.")
 
@@ -235,15 +235,12 @@ function ScanContent() {
     const formData = new FormData(e.currentTarget)
     
     if (type === "Image") {
-      const file = formData.get("file") as File
-      if (file.name) performScan(file.name, "Image", file)
-    } else if (type === "File") {
-      const file = formData.get("file") as File
-      if (file.name) performScan(file.name, "File")
-    } else {
-      const val = formData.get("input") as string
-      if (val) performScan(val, type)
-    }
+  const file = formData.get("file") as File
+  if (file?.name) performScan(file.name, "Image", file)
+} else {
+  const val = formData.get("input") as string
+  if (val?.trim()) performScan(val.trim(), type)
+}
   }
 
   const fillSample = (type: "URL" | "IP", category: "Phishing" | "Safe" | "Suspicious") => {
@@ -317,16 +314,8 @@ function ScanContent() {
           setHashOutput(hexOutput)
         } 
         else if (hashType === "md5") {
-          // Deterministic 32-character pseudo-MD5 for demo
-          let hash = 0;
-          for (let i = 0; i < hashInput.length; i++) {
-              hash = (hash << 5) - hash + hashInput.charCodeAt(i);
-              hash |= 0;
-          }
-          let hex = Math.abs(hash).toString(16);
-          while (hex.length < 32) hex += hex; 
-          setHashOutput(hex.substring(0, 32));
-        }
+  setHashOutput(MD5(hashInput).toString())
+}
       } else {
          if (hashType === "base64") {
            try { setHashOutput(atob(hashInput)) } 
@@ -387,7 +376,7 @@ function ScanContent() {
             <TabsList className="grid w-full grid-cols-5 h-auto bg-slate-900/80 border border-slate-800 p-1 mb-8">
               {[
                 { id: "url", icon: Globe, label: "URL" },
-                { id: "file", icon: FileCheck, label: "File" },
+                { id: "file", icon: FileCheck, label: "File Name" },
                 { id: "ip", icon: Search, label: "IP" },
                 { id: "image", icon: ImageIcon, label: "Img" },
                 { id: "hash", icon: Hash, label: "Hash" },
@@ -462,23 +451,33 @@ function ScanContent() {
                   )}
 
                   {activeTab === "file" && (
-                    <form onSubmit={(e) => handleScan(e, "File")} className="space-y-4">
-                      <div className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center hover:border-blue-500/50 cursor-pointer transition-colors bg-black/20">
-                        <Input name="file" type="file" className="hidden" id="file" required disabled={loading} />
-                        <label htmlFor="file" className="cursor-pointer block">
-                          <Download className="h-8 w-8 mx-auto text-slate-500 mb-2" />
-                          <span className="text-sm text-slate-400">Drop malware sample</span>
-                        </label>
-                      </div>
-                      <Button className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 font-bold" disabled={loading}>
-                        {loading ? <Activity className="mr-2 h-4 w-4 animate-spin" /> : <Bug className="mr-2 h-4 w-4" />}
-                        UPLOAD & ANALYZE
-                      </Button>
-                      <p className="text-xs text-slate-500 text-center mt-2">
-                        For testing, download the <a href="https://secure.eicar.org/eicar.com" target="_blank" className="text-blue-400 underline">EICAR Test File</a> (Safe Virus).
-                      </p>
-                    </form>
-                  )}
+  <form onSubmit={(e) => handleScan(e, "File")} className="space-y-4">
+    <Input
+      name="input"
+      placeholder="Example: invoice.pdf, update.exe, archive.zip"
+      className="bg-black/50 border-slate-700 h-12"
+      required
+      disabled={loading}
+    />
+
+    <Button
+      className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 font-bold"
+      disabled={loading}
+    >
+      {loading ? (
+        <Activity className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <FileCheck className="mr-2 h-4 w-4" />
+      )}
+      ANALYZE FILE NAME
+    </Button>
+
+    <p className="text-xs text-amber-400 text-center mt-2">
+      Learning simulation: this tool evaluates a file name only. It does not
+      upload, execute, or scan file contents.
+    </p>
+  </form>
+)}
 
                   {activeTab === "ip" && (
                      <div className="space-y-4">

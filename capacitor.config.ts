@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https',
     url: 'https://cybersync.vercel.app', // <--- LIVE VERCEL LINK
-    cleartext: true
+    cleartext: false,
   }
 };
 

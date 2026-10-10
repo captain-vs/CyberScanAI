@@ -23,7 +23,7 @@ const challengeData: Record<string, any> = {
   c5: { title: "API Security Testing", difficulty: "Medium", points: 320, description: "Bypass API auth.", objective: "Bypass auth", story: "Header 'X-Admin: false'.", hints: ["Change header", "X-Admin: true"], flag: "X-Admin: true" },
   c6: { title: "Privilege Escalation Lab", difficulty: "Hard", points: 450, description: "Gain admin.", objective: "Escalate privileges", story: "SUID binary reads config.", hints: ["SUID", "Symlink"], flag: "symlink-attack" },
   c7: { title: "Reverse Engineering", difficulty: "Hard", points: 500, description: "Decompile binary.", objective: "Find hidden flag", story: "Password for binary? Input 'reverse123'.", hints: ["strings command", "embedded text"], flag: "reverse123" },
-  c8: { title: "Cryptography Puzzle", difficulty: "Hard", points: 400, description: "Decrypt layers.", objective: "Decrypt message", story: "ROT13 then Base64: VmVyeSBTZWNyZXQgTWVzc2FnZQ==", hints: ["Decode Base64", "ROT13"], flag: "Secret Message" },
+  c8: { title: "Cryptography Puzzle", difficulty: "Hard", points: 400, description: "Decode an encoded message.", objective: "Decode the Base64 message.", story: "Encoded message: VmVyeSBTZWNyZXQgTWVzc2FnZQ==", hints: ["This is Base64", "Decode the full string"], flag: "Very Secret Message"},
   c9: { title: "Social Engineering Defense", difficulty: "Easy", points: 150, description: "Identify phishing.", objective: "Identify fake domain", story: "Email from support@bankofamerica-secure.xyz", hints: ["Check extension"], flag: "xyz" },
   c10: { title: "Container Security", difficulty: "Hard", points: 480, description: "Docker escape.", objective: "Escape container", story: "Docker socket mounted.", hints: ["Socket abuse"], flag: "docker-socket-escape" },
   c11: { title: "IoT Device Hacking", difficulty: "Medium", points: 290, description: "Default creds.", objective: "Access admin", story: "Username 'admin'. Password?", hints: ["Weak defaults", "admin"], flag: "admin123" },
@@ -40,6 +40,7 @@ const challengeData: Record<string, any> = {
 function LinuxTerminal({ challenge, onSolve }: any) {
   const [history, setHistory] = useState<string[]>(challenge.initialOutput)
   const [cmd, setCmd] = useState("")
+  const [scriptExecutable, setScriptExecutable] = useState(false)
   const terminalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -61,8 +62,15 @@ function LinuxTerminal({ challenge, onSolve }: any) {
 
     if (command === "ls") response = Object.keys(challenge.fileSystem).join("  ")
     else if (command === "cat") response = challenge.fileSystem[arg] || `cat: ${arg}: No such file`
-    else if (command === "chmod" && arg === "+x" && parts[2] === "script.sh") response = "Changed mode of script.sh to 755"
-    else if (command === "./script.sh") response = challenge.id === "l2" ? challenge.fileSystem["script.sh"] : "Permission denied"
+else if (
+  command === "chmod" &&
+  arg === "+x" &&
+  parts[2] === "script.sh"
+) {
+  setScriptExecutable(true)
+  response = "Changed mode of script.sh to 755"
+}
+    else if (command === "./script.sh") { response = challenge.title === "Linux Permissions" && scriptExecutable  ? challenge.fileSystem["script.sh"]  : "Permission denied"}
     else if (command === "grep") {
        if (challenge.fileSystem["server.log"]?.includes(arg)) response = "CRITICAL_ERROR: The flag is ERR_9921_X"
        else response = ""

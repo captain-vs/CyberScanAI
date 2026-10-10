@@ -1,38 +1,32 @@
-import { NextResponse } from "next/server";
-import { securityScanFlow } from "@/src/index";
+import { NextResponse } from "next/server"
+import { z } from "zod"
+import { securityScanFlow } from "@/src/index"
+
+const scanSchema = z.object({
+  target: z.string().trim().min(1).max(500),
+  type: z.enum(["URL", "IP", "File", "Image"]),
+  imageBase64: z.string().max(1_500_000).optional(),
+})
 
 export async function POST(req: Request) {
-  const timestamp = new Date().toLocaleTimeString();
-  
   try {
-    const body = await req.json();
-    const { target, type } = body;
+    const payload = scanSchema.parse(await req.json())
 
-    console.log(`\n\x1b[36m[${timestamp}] 🚀 INITIATING SCAN: ${type} -> ${target}\x1b[0m`);
-
-    if (!target) {
-      console.log(`\x1b[31m[${timestamp}] ❌ ERROR: Missing target\x1b[0m`);
-      return NextResponse.json({ error: "Target is required" }, { status: 400 });
+    if (payload.type === "Image" && !payload.imageBase64) {
+      return NextResponse.json(
+        { error: "Image data is required for image analysis." },
+        { status: 400 },
+      )
     }
 
-    // Call Genkit Flow
-    console.log(`\x1b[33m[${timestamp}] ⏳ Calling Genkit AI Model...\x1b[0m`);
-    const result = await securityScanFlow({ target, type: type || "URL" });
+    const result = await securityScanFlow(payload)
+    return NextResponse.json(result)
+  } catch (error) {
+    const message =
+      error instanceof z.ZodError
+        ? "Invalid scan request."
+        : "Scan service is temporarily unavailable."
 
-    // Log success or fallback
-    if (result.description.includes("AI Unavailable")) {
-      console.log(`\x1b[31m[${timestamp}] ⚠️ AI FAILED. Serving Heuristic Fallback Data.\x1b[0m`);
-    } else {
-      console.log(`\x1b[32m[${timestamp}] ✅ SUCCESS: AI Analysis Complete.\x1b[0m`);
-    }
-
-    return NextResponse.json(result);
-
-  } catch (error: any) {
-    console.error(`\x1b[31m[${timestamp}] 🔥 CRITICAL API ERROR:\x1b[0m`, error.message);
-    return NextResponse.json(
-      { error: "Scan Failed", details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 }

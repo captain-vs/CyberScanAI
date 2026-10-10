@@ -280,13 +280,25 @@ export function ChatBox() {
       setInput("")
 
       try {
-        await addDoc(collection(db, "messages"), {
-          senderUid: currentUser.uid,
-          receiverUid: activeChatTarget.uid,
-          text: textToSend,
-          timestamp: serverTimestamp(),
-          read: false
+        // Retrieve the fresh Firebase ID token for secure server-side verification
+        const token = await currentUser.getIdToken()
+
+        const response = await fetch('/api/send-message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            receiverUid: activeChatTarget.uid,
+            text: textToSend,
+          }),
         })
+
+        const data = await response.json()
+        if (!data.success) {
+          console.error("Failed to send message and trigger push:", data.error)
+        }
       } catch (err) {
         console.error("Message send error:", err)
       }

@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    match /users/{userId} {
+      allow create: if isOwner(userId);
+      allow read: if isOwner(userId);
+
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly([
+            'name', 'country', 'bio', 'specialization',
+            'experienceLevel', 'github', 'twitter', 'linkedin',
+            'bannerUrl', 'avatarUrl', 'profileVisibility',
+            'customLinks', 'connections', 'fcmToken'
+          ]);
+
+      allow delete: if isOwner(userId);
+
+      match /activity/{activityId} {
+        allow read: if isOwner(userId);
+        allow create: if false;
+        allow update, delete: if false;
+      }
+    }
+
+    match /messages/{messageId} {
+      allow read: if signedIn()
+        && (resource.data.senderUid == request.auth.uid
+          || resource.data.receiverUid == request.auth.uid);
+
+      allow create, update, delete: if false;
+    }
+
+    match /connectionRequests/{requestId} {
+      allow read: if signedIn()
+        && (resource.data.senderUid == request.auth.uid
+          || resource.data.receiverUid == request.auth.uid);
+
+      allow create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

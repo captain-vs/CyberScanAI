@@ -1,54 +1,63 @@
-import { NextResponse } from "next/server";
-import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-import { getMessaging } from "firebase-admin/messaging";
+import { NextResponse } from "next/server"
+import { z } from "zod"
+import { adminAuth, adminDb, adminMessaging } from "@/lib/server/firebase-admin"
 
-// Initialize Firebase Admin (Download your private key json from Firebase Console > Project Settings > Service Accounts)
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || "{}");
-
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount),
-  });
-}
-
-const adminDb = getFirestore();
-const adminMessaging = getMessaging();
+const messageSchema = z.object({
+  receiverUid: z.string().min(1).max(128),
+  text: z.string().trim().min(1).max(2000),
+})
 
 export async function POST(req: Request) {
   try {
-    const { senderUid, receiverUid, senderName, text } = await req.json();
+    const authorization = req.headers.get("authorization")
 
-    // 1. Save message to Firestore
+    if (!authorization?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
+    }
+
+    const token = authorization.slice(7)
+    const sender = await adminAuth.verifyIdToken(token)
+    const { receiverUid, text } = messageSchema.parse(await req.json())
+
+    if (sender.uid === receiverUid) {
+      return NextResponse.json({ error: "Cannot message yourself." }, { status: 400 })
+    }
+
+    const receiver = await adminDb.collection("users").doc(receiverUid).get()
+
+    if (!receiver.exists) {
+      return NextResponse.json({ error: "Recipient not found." }, { status: 404 })
+    }
+
+    const senderProfile = await adminDb.collection("users").doc(sender.uid).get()
+    const senderName = senderProfile.data()?.name || sender.email || "SecurityX user"
+
     const messageRef = await adminDb.collection("messages").add({
-      senderUid,
+      senderUid: sender.uid,
       receiverUid,
       senderName,
       text,
       read: false,
       createdAt: new Date(),
-    });
+    })
 
-    // 2. Fetch recipient's FCM token
-    const userDoc = await adminDb.collection("users").doc(receiverUid).get();
-    if (userDoc.exists) {
-      const fcmToken = userDoc.data()?.fcmToken;
+    const fcmToken = receiver.data()?.fcmToken
 
-      if (fcmToken) {
-        // 3. Send push notification instantly
-        await adminMessaging.send({
-          token: fcmToken,
-          notification: {
-            title: `New Message from ${senderName}`,
-            body: text,
-          },
-        });
-      }
+    if (fcmToken) {
+      await adminMessaging.send({
+        token: fcmToken,
+        notification: {
+          title: `Message from ${senderName}`,
+          body: text.slice(0, 140),
+        },
+      })
     }
 
-    return NextResponse.json({ success: true, id: messageRef.id });
-  } catch (error) {
-    console.error("Error sending message and push:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, id: messageRef.id })
+  } catch {
+    return NextResponse.json(
+      { error: "Unable to send message." },
+      { status: 400 },
+    )
   }
 }

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { auth } from "@/lib/firebase"
 import { 
   CheckCircle, 
   XCircle, 
@@ -62,7 +63,11 @@ export default function QuizPage() {
 
     try {
       // Mock User ID (Replace with real auth ID if available)
-      const userId = "current_user" 
+      const userId = auth.currentUser?.uid
+      if (!userId) {
+        router.push("/auth")
+        return
+      }
       
       // Get Randomized Questions
       const availableQuestions = getAvailableQuestions(userId, quizId, quiz.questions.length)

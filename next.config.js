@@ -1,23 +1,41 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+
   async headers() {
     return [
       {
-        // Apply no-cache headers to all HTML pages so clients always get the latest chunks on deploy
-        source: '/((?!_next/static|_next/image|favicon.ico).*)',
+        source: "/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'no-store, must-revalidate, max-age=0',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },
-    ];
+      {
+        source: "/((?!_next/static|_next/image|favicon.ico).*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, must-revalidate, max-age=0",
+          },
+        ],
+      },
+    ]
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
