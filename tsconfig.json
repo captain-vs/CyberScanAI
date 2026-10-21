@@ -36,7 +36,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-, "next.config.mjs"  ],
+, "next.config.mjs", "genkit.config.ts.bak"  ],
   "exclude": [
     "node_modules"
   ]
