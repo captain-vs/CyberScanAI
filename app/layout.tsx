@@ -90,6 +90,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+    <head>
+      <meta name="google-adsense-account" content="ca-pub-6753717364472113"></meta>
+    </head>
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased bg-black text-white`}>
         
         {/* Top Navigation Bar */}
