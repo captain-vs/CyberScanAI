@@ -18,9 +18,8 @@ import {
   Activity,
   Map, 
   Flag, 
-  Badge
 } from "lucide-react"
-
+import { Badge } from "@/components/ui/badge"
 import {
   doc,
   collection,
@@ -37,6 +36,7 @@ import AuthGuard from "@/components/auth-guard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { getLevelThreshold } from "@/lib/activity"
+import { WebAdBanner } from "@/components/WebAdBanner"
 
 // --- TYPES ---
 interface UserStats {
@@ -375,6 +375,7 @@ export default function DashboardPage() {
   return (
     <AuthGuard>
       <DashboardContent />
+      <WebAdBanner />
     </AuthGuard>
   )
 }
