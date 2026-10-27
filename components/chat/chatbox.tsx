@@ -18,8 +18,7 @@ import {
   getDocs, 
   where, 
   writeBatch, 
-  addDoc, 
-  serverTimestamp, 
+  or,  
   updateDoc 
 } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
@@ -147,7 +146,15 @@ export function ChatBox() {
         if (auth.currentUser) console.warn("Users listener note:", err)
       })
 
-      const unsubMsgs = onSnapshot(collection(db, "messages"), (snap) => {
+      const messagesQuery = query(
+  collection(db, "messages"),
+  or(
+    where("senderUid", "==", user.uid),
+    where("receiverUid", "==", user.uid),
+  ),
+)
+
+const unsubMsgs = onSnapshot(messagesQuery, (snap) => {
         const map: Record<string, Message[]> = {}
         snap.forEach(d => {
           const m = { id: d.id, ...d.data() } as Message
@@ -279,7 +286,7 @@ Object.keys(map).forEach(partner => {
     } else {
       if (!currentUser) return
       const textToSend = text
-      setInput("")
+      
 
       try {
         // Retrieve the fresh Firebase ID token for secure server-side verification
@@ -298,11 +305,15 @@ Object.keys(map).forEach(partner => {
         })
 
         const data = await response.json()
-        if (!data.success) {
-          console.error("Failed to send message and trigger push:", data.error)
-        }
+
+if (!response.ok || !data.success) {
+  throw new Error(data.error || "Unable to send message.")
+}
+
+setInput("")
       } catch (err) {
         console.error("Message send error:", err)
+        alert("Your message was not sent. Please try again.")
       }
     }
   }

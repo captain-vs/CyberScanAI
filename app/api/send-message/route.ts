@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { adminAuth, adminDb, adminMessaging } from "@/lib/server/firebase-admin"
-
+import { FieldValue } from "firebase-admin/firestore"
 const messageSchema = z.object({
   receiverUid: z.string().min(1).max(128),
   text: z.string().trim().min(1).max(2000),
@@ -38,20 +38,24 @@ export async function POST(req: Request) {
       senderName,
       text,
       read: false,
-      createdAt: new Date(),
+      timestamp: FieldValue.serverTimestamp(),
     })
 
     const fcmToken = receiver.data()?.fcmToken
 
     if (fcmToken) {
-      await adminMessaging.send({
-        token: fcmToken,
-        notification: {
-          title: `Message from ${senderName}`,
-          body: text.slice(0, 140),
-        },
-      })
-    }
+  try {
+    await adminMessaging.send({
+      token: fcmToken,
+      notification: {
+        title: `Message from ${senderName}`,
+        body: text.slice(0, 140),
+      },
+    })
+  } catch (notificationError) {
+    console.warn("Push notification was not sent:", notificationError)
+  }
+}
 
     return NextResponse.json({ success: true, id: messageRef.id })
   } catch {
