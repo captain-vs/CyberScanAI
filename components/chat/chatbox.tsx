@@ -157,13 +157,15 @@ export function ChatBox() {
             map[partnerUid].push(m)
           }
         })
-        Object.keys(map).forEach(partner => {
-          map[partner].sort((a, b) => {
-            const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0
-            const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0
-            return timeA - timeB
-          })
-        })
+        // Replace your existing message sorting block inside the onSnapshot listener:
+Object.keys(map).forEach(partner => {
+  map[partner].sort((a, b) => {
+    // Handle Firestore Timestamps, standard Dates, or fallback to 0/now for pending local writes
+    const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : (a.timestamp ? new Date(a.timestamp).getTime() : Date.now())
+    const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : (b.timestamp ? new Date(b.timestamp).getTime() : Date.now())
+    return timeA - timeB
+  })
+})
         setAllMessagesMap(map)
       }, (err) => {
         if (auth.currentUser) console.warn("Messages listener note:", err)

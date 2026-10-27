@@ -171,6 +171,7 @@ export default function GameZonePage() {
       }
       
       setCurrentUserId(user.uid)
+      setLoading(false)
 
       // User Listener with Error Suppression for Logout
       unsubDoc = onSnapshot(
@@ -198,25 +199,12 @@ export default function GameZonePage() {
           setLoading(false)
         },
         (error) => {
-          if (error.code === "permission-denied") return // ⚡ Suppresses logout error
-          console.error("Firestore Error:", error)
+          if (error.code !== "permission-denied") {
+            console.error("Firestore Error:", error)
+          }
+          setLoading(false)
         }
       )
-
-      // Fetch Leaderboard (Top 50)
-      const fetchLeaderboard = async () => {
-        try {
-          const q = query(collection(db, "users"), orderBy("stats.points", "desc"), limit(50))
-          const snapshot = await getDocs(q)
-          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-          setLeaderboard(data)
-        } catch (err: any) {
-          if (err.code !== "permission-denied") {
-            console.error("Leaderboard fetch error:", err)
-          }
-        }
-      }
-      fetchLeaderboard()
     })
 
     return () => {
@@ -224,6 +212,34 @@ export default function GameZonePage() {
       if (unsubDoc) unsubDoc()
     }
   }, [])
+  
+  useEffect(() => {
+  if (activeTab !== "rank" || !currentUserId) return
+
+  const fetchLeaderboard = async () => {
+    try {
+      const q = query(
+        collection(db, "users"),
+        orderBy("stats.points", "desc"),
+        limit(50),
+      )
+
+      const snapshot = await getDocs(q)
+      const data = snapshot.docs.map((userDoc) => ({
+        id: userDoc.id,
+        ...userDoc.data(),
+      }))
+
+      setLeaderboard(data)
+    } catch (err: any) {
+      if (err.code !== "permission-denied") {
+        console.error("Leaderboard fetch error:", err)
+      }
+    }
+  }
+
+  fetchLeaderboard()
+}, [activeTab, currentUserId])
 
   const handleTabChange = (tab: "quiz" | "challenges" | "rank") => {
     setActiveTab(tab)

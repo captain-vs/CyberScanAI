@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { usePathname } from "next/navigation"
 import Footer from "@/components/footer"
-import { ChatBox } from "@/components/chat/chatbox"
 
 export default function AppShell() {
   const pathname = usePathname()
@@ -29,10 +28,6 @@ export default function AppShell() {
   return (
     <div className="relative w-full">
       <Footer />
-      {/* Absolute positioning container anchored to the bottom right of the shell */}
-      <div className="absolute bottom-4 right-6 z-50">
-        <ChatBox />
-      </div>
     </div>
   )
 }
