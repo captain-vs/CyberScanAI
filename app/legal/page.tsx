@@ -1,92 +1,216 @@
-"use client"
-
 import Link from "next/link"
-import { ArrowLeft, AlertTriangle, Shield, FileText } from "lucide-react"
+import { ArrowLeft, AlertTriangle, FileText, Shield } from "lucide-react"
 
 export default function LegalPage() {
-  return (
-    <div className="min-h-screen bg-black text-slate-300 py-12 md:py-20 relative font-sans">
-      
-      {/* Subtle Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-black to-black pointer-events-none" />
+  const lastUpdated = "November 3, 2026"
 
-      <div className="container max-w-4xl mx-auto px-4 relative z-10">
-        
-        <Link 
-          href="/" 
-          className="inline-flex items-center text-slate-400 hover:text-white font-medium mb-8 transition-colors"
+  return (
+    <main className="min-h-screen bg-black px-4 py-12 text-slate-300 md:py-20">
+      <div className="mx-auto max-w-4xl">
+        <Link
+          href="/"
+          className="mb-8 inline-flex items-center gap-2 text-sm text-slate-400 transition-colors hover:text-lime-400"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+          <ArrowLeft className="h-4 w-4" />
+          Back to home
         </Link>
 
-        <div className="mb-12 border-b border-slate-800 pb-8">
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-            Legal & Policies
+        <header className="mb-12 border-b border-slate-800 pb-8">
+          <h1 className="text-4xl font-bold text-white md:text-5xl">
+            Legal, Privacy & Terms
           </h1>
-          <p className="text-slate-400 text-lg mb-2">
-            Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+
+          <p className="mt-3 text-sm text-slate-500">
+            Last updated: {lastUpdated}
           </p>
-          <p className="text-sm text-slate-500 font-mono">
-            *Note: SecurityX was formerly operating under the name CyberScan AI.
+
+          <p className="mt-4 max-w-3xl leading-relaxed text-slate-400">
+            SecurityX is an educational cybersecurity learning platform. It was
+            previously known as CyberScan AI.
           </p>
-        </div>
+        </header>
 
-        <div className="space-y-12">
-          
-          {/* CRITICAL: EDUCATIONAL DISCLAIMER */}
-          <section className="bg-red-500/10 border border-red-500/30 p-6 md:p-8 rounded-2xl">
-            <h2 className="text-2xl font-bold text-red-400 mb-4 flex items-center gap-3">
-              <AlertTriangle className="h-6 w-6" /> STRICT EDUCATIONAL DISCLAIMER
-            </h2>
-            <div className="space-y-4 text-red-200/80 leading-relaxed">
-              <p>
-                <strong>SecurityX is strictly an educational platform.</strong> The tools, simulators, and information provided on this website (including but not limited to OSINT trackers, URL scanners, and GameZone challenges) are designed exclusively for learning cybersecurity concepts, ethical hacking training, and academic research.
-              </p>
-              <p>
-                Any actions and/or activities related to the material contained within this website are solely your responsibility. <strong>The creator(s) and administrators of SecurityX will not be held responsible</strong> for any criminal charges, damages, or illegal actions brought against any individuals resulting from the misuse of the tools or information provided on this platform.
-              </p>
-              <p>
-                By using this site, you explicitly agree not to use these tools to target, scan, or attack any system, network, or individual without explicit, documented permission.
+        <section className="mb-12 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6">
+          <h2 className="flex items-center gap-3 text-xl font-semibold text-amber-300">
+            <AlertTriangle className="h-5 w-5" />
+            Educational use notice
+          </h2>
+
+          <p className="mt-4 leading-relaxed text-slate-300">
+            SecurityX is intended for cybersecurity education, guided practice,
+            and awareness. Some features, including OSINT-related experiences,
+            use educational simulations or example data. They are not a source
+            of live breach intelligence, professional security assessments, or
+            real-time threat guarantees.
+          </p>
+
+          <p className="mt-4 leading-relaxed text-slate-300">
+            Never use SecurityX to target, scan, investigate, harass, or access
+            a person, account, device, network, or website without clear
+            permission from its owner.
+          </p>
+        </section>
+
+        <section id="terms" className="mb-14 scroll-mt-24">
+          <h2 className="flex items-center gap-3 text-3xl font-bold text-white">
+            <FileText className="h-7 w-7 text-blue-400" />
+            Terms of Use
+          </h2>
+
+          <div className="mt-6 space-y-6 leading-relaxed text-slate-400">
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                1. Acceptance
+              </h3>
+              <p className="mt-2">
+                By using SecurityX, you agree to use the platform lawfully and
+                responsibly. If you do not agree with these terms, please do not
+                use the platform.
               </p>
             </div>
-          </section>
 
-          {/* Terms of Service */}
-          <section>
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-              <FileText className="h-6 w-6 text-blue-500" /> Terms of Service
-            </h2>
-            <div className="space-y-4 text-slate-400 leading-relaxed">
-              <h3 className="text-xl font-semibold text-slate-200 mt-6">1. Acceptance of Terms</h3>
-              <p>By accessing and using SecurityX, you accept and agree to be bound by the terms and provisions of this agreement.</p>
-              
-              <h3 className="text-xl font-semibold text-slate-200 mt-6">2. Acceptable Use</h3>
-              <p>You agree to use the platform only for lawful, educational purposes. You shall not use the OSINT tools to harass, stalk, or dox any individual. You shall not use the URL/File scanning tools to reverse-engineer or distribute malware.</p>
-
-              <h3 className="text-xl font-semibold text-slate-200 mt-6">3. Account Termination</h3>
-              <p>We reserve the right to terminate or suspend your account and block access to the platform immediately, without prior notice or liability, if you breach these Terms of Service or violate the Educational Disclaimer.</p>
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                2. Permitted use
+              </h3>
+              <p className="mt-2">
+                SecurityX may be used for personal learning, cybersecurity
+                awareness, and authorised educational practice. You must not use
+                the platform to attack systems, collect personal data without
+                permission, distribute malware, evade security controls, or
+                assist unlawful activity.
+              </p>
             </div>
-          </section>
 
-          {/* Privacy Policy */}
-          <section>
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-              <Shield className="h-6 w-6 text-emerald-500" /> Privacy Policy
-            </h2>
-            <div className="space-y-4 text-slate-400 leading-relaxed">
-              <h3 className="text-xl font-semibold text-slate-200 mt-6">1. Data Collection</h3>
-              <p>When you register for SecurityX, we collect basic authentication information (such as your email address and display name) required to maintain your GameZone progress and scan history. This authentication is securely handled by Google Firebase.</p>
-
-              <h3 className="text-xl font-semibold text-slate-200 mt-6">2. Tool Usage & Scanning Data</h3>
-              <p>URLs, files, and IPs submitted to our scanning engine may be analyzed by our backend AI systems. Do not submit highly sensitive, confidential, or personally identifiable information into the public scanners.</p>
-
-              <h3 className="text-xl font-semibold text-slate-200 mt-6">3. Data Sharing</h3>
-              <p>We do not sell, trade, or rent your personal identification information to others. Your data is used exclusively to operate, maintain, and improve the SecurityX platform.</p>
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                3. No professional security guarantee
+              </h3>
+              <p className="mt-2">
+                SecurityX does not replace a qualified cybersecurity
+                professional, incident-response provider, antivirus product, or
+                professional penetration test. Results, explanations, and
+                educational simulations should not be treated as a final
+                security verdict.
+              </p>
             </div>
-          </section>
 
-        </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                4. Accounts and user content
+              </h3>
+              <p className="mt-2">
+                You are responsible for the information you enter into your
+                account and for keeping your sign-in details secure. Do not
+                submit confidential files, passwords, private keys, financial
+                information, or sensitive personal data to platform tools.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                5. Changes or access restrictions
+              </h3>
+              <p className="mt-2">
+                Features may change, be improved, paused, or removed as the
+                platform develops. Access may be restricted when needed to
+                protect users, the platform, or applicable law.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="privacy" className="scroll-mt-24">
+          <h2 className="flex items-center gap-3 text-3xl font-bold text-white">
+            <Shield className="h-7 w-7 text-emerald-400" />
+            Privacy Policy
+          </h2>
+
+          <div className="mt-6 space-y-6 leading-relaxed text-slate-400">
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                1. Information we collect
+              </h3>
+              <p className="mt-2">
+                When you create an account, SecurityX may process information
+                needed to operate the account, such as your email address,
+                display name, profile information, learning progress, and
+                platform activity. Information you voluntarily submit through
+                forms, messages, or feedback may also be processed.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                2. How information is used
+              </h3>
+              <p className="mt-2">
+                Information is used to provide authentication, save learning
+                progress, operate platform features, respond to support
+                requests, improve reliability, and protect the platform from
+                misuse.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                3. Service providers
+              </h3>
+              <p className="mt-2">
+                SecurityX uses third-party services to operate parts of the
+                platform. These may include Firebase for authentication and
+                database services, Vercel for website hosting and performance
+                services, and Web3Forms for support-form delivery. When you use
+                a feature that sends information to an external service, that
+                service may process the information according to its own privacy
+                policy.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                4. Tool inputs
+              </h3>
+              <p className="mt-2">
+                Do not submit sensitive, confidential, or personal information
+                to scanning, analysis, chat, or educational tools. Tool inputs
+                may be processed by SecurityX or relevant service providers to
+                deliver the requested feature.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                5. Cookies and advertising
+              </h3>
+              <p className="mt-2">
+                SecurityX may use essential browser storage, cookies, or similar
+                technologies to provide account sessions and improve the
+                platform. If advertising is enabled in the future, this policy
+                will be updated to explain the advertising technologies and
+                choices available to visitors.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                6. Contact
+              </h3>
+              <p className="mt-2">
+                For privacy questions, support, or requests related to your
+                account, contact{" "}
+                <a
+                  href="mailto:customercare@securityx.in"
+                  className="text-lime-400 underline underline-offset-4 hover:text-lime-300"
+                >
+                  customercare@securityx.in
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   )
 }

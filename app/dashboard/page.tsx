@@ -36,7 +36,6 @@ import AuthGuard from "@/components/auth-guard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { getLevelThreshold } from "@/lib/activity"
-import { WebAdBanner } from "@/components/WebAdBanner"
 
 // --- TYPES ---
 interface UserStats {
@@ -171,14 +170,21 @@ function DashboardContent() {
         </div>
 
         {/* ⚡ UPDATED: OPERATIONAL MODULES WITH DIRECTORY LINK */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-500"/> Operational Modules
-          </h2>
-          <Link href="/directory" className="text-sm font-bold text-lime-400 hover:text-lime-300 flex items-center gap-1 transition-colors">
-            View Full Directory <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+    <Shield className="h-5 w-5 text-blue-500"/> Operational Modules
+  </h2>
+  {/* Added flex, flex-row, items-center, and gap-4 here */}
+  <div className="flex flex-row items-center gap-4"> 
+    <Link href="/guides" className="text-sm font-bold text-lime-400 hover:text-lime-300 flex items-center gap-1 transition-colors">
+      View Beginner Guides <ArrowRight className="h-4 w-4" />
+    </Link>
+    <Link href="/directory" className="text-sm font-bold text-lime-400 hover:text-lime-300 flex items-center gap-1 transition-colors">
+      View Full Directory <ArrowRight className="h-4 w-4" />
+    </Link>
+  </div>
+</div>
+
         
         {/* ROADMAP BANNER (FULL WIDTH) */}
         <div className="mb-6">
@@ -375,7 +381,7 @@ export default function DashboardPage() {
   return (
     <AuthGuard>
       <DashboardContent />
-      <WebAdBanner />
+      
     </AuthGuard>
   )
 }

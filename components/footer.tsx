@@ -76,6 +76,12 @@ export default function Footer() {
               <li>
                 <Link href="/profile" className="transition-colors hover:text-lime-400">User Profile</Link>
               </li>
+              <li>
+                <Link href="/guides"
+                  className="hidden text-sm font-medium transition-colors hover:text-lime-400 sm:block">
+                  Beginner Guides
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -117,11 +123,11 @@ export default function Footer() {
           
           {/* ⚡ Using ml-auto with a negative margin or spacing offset to shift left */}
           <div className="flex gap-6 mr-12 sm:mr-20">
-            <Link href="/legal" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
-              Privacy Policy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <Link href="/legal#privacy" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
+              Privacy Policy
             </Link>
-            <Link href="/legal" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
-              Terms of Service&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <Link href="/legal#terms" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
+              Terms of Service
             </Link>
           </div>
         </div>

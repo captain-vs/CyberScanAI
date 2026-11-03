@@ -28,13 +28,21 @@ export const metadata: Metadata = {
   //  NEW: Base URL so Next.js can resolve your images properly
   metadataBase: new URL("https://securityx.in"),
   manifest: "/manifest.json",
-  title: {
-    default: "SecurityX - Best Cybersecurity Learning Platform for Beginners",
-    template: "%s | SecurityX"
-  },
-  description: "Master cybersecurity with SecurityX (formerly CyberScan AI). Analyze threats, complete interactive labs, and compete in our GameZone. The ultimate learning hub for beginners.",
-  keywords: ["securityx", "cyberscan ai", "cyberscan", "cybersecurity scanner", "phishing detector", "malware analysis", "osint tools", "CTF practice", "learn hacking", "url scanner"],
-  authors: [{ name: "CyberScan Team" }],
+ title: {
+  default: "SecurityX | Learn Cybersecurity Through Practice",
+  template: "%s | SecurityX",
+},
+description:
+  "SecurityX is a beginner-friendly cybersecurity learning platform with lessons, quizzes, interactive challenges, progress tracking, and safe OSINT learning simulations.",
+keywords: [
+  "cybersecurity learning",
+  "cybersecurity for beginners",
+  "CTF practice",
+  "security quizzes",
+  "cybersecurity lessons",
+  "ethical hacking education",
+],
+ authors: [{ name: "CyberScan Team" }],
   creator: "SecurityX",
 
 
@@ -54,7 +62,7 @@ icons: {
   // 6. Social Media Cards (Open Graph)
   openGraph: {
     title: "SecurityX",
-    description: "Next-Gen AI Threat Detection. Scan URLs, Files, and IPs instantly.",
+    description: "SecurityX is a beginner-friendly cybersecurity learning platform with lessons, quizzes, interactive challenges, progress tracking, and safe OSINT learning simulations.",
     url: "https://securityx.in",
     siteName: "SecurityX",
     images: [
@@ -73,7 +81,7 @@ icons: {
   twitter: {
     card: "summary_large_image",
     title: "SecurityX - Best Cybersecurity Learning Platform",
-    description: "Next-Gen AI Threat Detection. Scan URLs, Files, and IPs instantly.",
+    description: "Learn cybersecurity through lessons, quizzes, interactive challenges, and safe educational simulations.",
     images: ["/og-image.png"], // Uses the same image from your /public folder
   },
 

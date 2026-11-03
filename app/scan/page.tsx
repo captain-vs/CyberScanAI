@@ -357,14 +357,14 @@ function ScanContent() {
            </div>
            
            <div className="w-full flex justify-end px-4">
-               <Link href="/roadmap">
+               <Link href="/guides">
                   <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-700 rounded-full text-slate-300 hover:text-white hover:border-blue-500 transition-all shadow-lg"
                   >
                       <Map className="h-5 w-5 text-blue-500" />
-                      <span className="font-bold text-sm">Learning Roadmap</span>
+                      <span className="font-bold text-sm">Beginner Guides</span>
                       <ChevronRight className="h-4 w-4 opacity-50" />
                   </motion.button>
                </Link>

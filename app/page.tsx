@@ -1,7 +1,4 @@
 "use client"
-
-import { useEffect, useState } from "react" 
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
@@ -29,43 +26,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CyberWrapper } from "@/components/cyber-wrapper"
 
-// 🔥 IMPORT FIREBASE AUTH 🔥
-import { onAuthStateChanged } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+
 
 export default function Home() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true) // ⏳ Loading state
-
-  // ✅ LOGIC: REAL-TIME REDIRECT
-  useEffect(() => {
-    // This listener waits for Firebase to confirm the user status
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("User detected, redirecting to Dashboard...");
-        router.push("/dashboard")
-      } else {
-        setLoading(false) // No user, show the landing page
-      }
-    })
-
-    // Cleanup the listener when the page closes
-    return () => unsubscribe()
-  }, [router])
-
-  // ⏳ LOADING SCREEN (Prevents "Welcome" flash)
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#020617] text-cyan-500">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent"></div>
-          <p className="animate-pulse font-mono text-sm tracking-widest">INITIALIZING SYSTEM...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // 👇 YOUR LANDING PAGE CONTENT STAYS EXACTLY THE SAME 👇
   return (
     <CyberWrapper>
       <div className="min-h-screen">
@@ -81,15 +44,15 @@ export default function Home() {
             >
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lime-500/30 bg-lime-500/10 px-4 py-2 text-sm text-lime-400 backdrop-blur-sm">
                 <Shield className="h-4 w-4" />
-                <span className="font-mono tracking-wide">SYSTEMS ONLINE // AI SECURITY ACTIVE</span>
+                <span className="font-mono tracking-wide">LEARN • PRACTICE • GROW</span>
               </div>
               
               <h1 className="mb-6 text-5xl font-black tracking-tighter md:text-8xl text-white">
                 SECURITY<span className="text-lime-400">X</span>
               </h1>
               
-              <p className="mb-10 text-xl text-slate-400 md:text-2xl max-w-2xl mx-auto leading-relaxed">
-                The ultimate cybersecurity command center. <span className="text-white">Scan threats</span>, <span className="text-white">master skills</span>, and <span className="text-white">compete globally</span>.
+              <p className="mb-10 text-xl text-slate-100 md:text-2xl max-w-2xl mx-auto leading-relaxed">
+                A cybersecurity learning platform for beginners. <span className="text-slate-300">Explore lessons</span>, <span className="text-white">quizzes, guided challenges</span>, and <span className="text-white">safe educational simulations</span>.
               </p>
               
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
@@ -118,8 +81,8 @@ export default function Home() {
             viewport={{ once: true }}
             className="mb-12 text-center"
           >
-            <h2 className="mb-4 text-4xl font-bold text-white">Operational Hubs</h2>
-            <p className="text-lg text-slate-400">Deployable modules for every security mission</p>
+            <h2 className="mb-4 text-4xl font-bold text-white">Learning Areas</h2>
+            <p className="text-lg text-slate-400">Practical ways to explore cybersecurity concepts</p>
           </motion.div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -195,12 +158,12 @@ export default function Home() {
         <section className="border-y border-slate-800 bg-slate-900/30 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-20">
             <div className="mb-12 text-center">
-              <h2 className="mb-4 text-3xl font-bold text-white">Live System Capabilities</h2>
-              <p className="text-slate-400">All modules fully operational and ready for deployment</p>
+              <h2 className="mb-4 text-3xl font-bold text-white">What You Can Learn</h2>
+              <p className="text-slate-400">Lessons, challenges, and guided practice for beginners</p>
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[
-                { title: "Real-Time Scanning", desc: "5 active scanners with detailed reports", color: "text-blue-400" },
+                { title: "Educational Analysis Tools", desc: "Practice interpreting inputs and security signals in a learning environment", color: "text-blue-400" },
                 { title: "Interactive Labs", desc: "SQLi, XSS, and 2FA practice environments", color: "text-emerald-400" },
                 { title: "15+ Challenges", desc: "Gamified hacking simulations", color: "text-purple-400" },
                 { title: "Skill Roadmap", desc: "Track progress from Novice to Pro", color: "text-lime-400" },
@@ -226,10 +189,11 @@ export default function Home() {
         {/* STATS */}
         <section className="container mx-auto px-4 py-20">
           <div className="grid gap-8 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-800">
-             <StatItem value="10K+" label="Scans Run" color="text-blue-400" />
-             <StatItem value="500+" label="Resources" color="text-emerald-400" />
-             <StatItem value="1K+" label="Operatives" color="text-purple-400" />
-             <StatItem value="15+" label="Missions" color="text-orange-400" />
+             <StatItem value="Learn" label="Security Fundamentals" color="text-blue-400" />
+              <StatItem value="Practice" label="Interactive Challenges" color="text-emerald-400" />
+              <StatItem value="Track" label="Your Learning Progress" color="text-purple-400" />
+              <StatItem value="Explore" label="Safe OSINT Simulations" color="text-orange-400" />
+              
           </div>
         </section>
 

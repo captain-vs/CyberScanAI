@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { HelpCircle, Mail, MessageSquare, Send, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react"
@@ -30,7 +29,7 @@ const faqs = [
   },
   {
     q: "Are the scanners and penetration testing tools safe to use?",
-    a: "Yes! All scanning features and simulations are executed in secure, isolated sandbox environments or through safe heuristic analysis to ensure absolute safety for your system."
+    a: "Yes! SecurityX is designed for educational use. Some tools provide guided analysis or simulated learning results. Do not upload confidential files or use the platform to scan systems, accounts, or data without permission."
   },
   {
     q: "What happens if I lose my connection during a Siege match?",
