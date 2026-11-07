@@ -1,4 +1,10 @@
 "use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { onAuthStateChanged } from "firebase/auth"
+import { auth } from "@/lib/firebase"
+
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
@@ -29,6 +35,38 @@ import { CyberWrapper } from "@/components/cyber-wrapper"
 
 
 export default function Home() {
+  const router = useRouter()
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        if (user) {
+          router.replace("/dashboard")
+        } else {
+          setCheckingAuth(false)
+        }
+      },
+      (error) => {
+        console.error("Authentication check failed:", error)
+        setCheckingAuth(false)
+      }
+    )
+
+    return () => unsubscribe()
+  }, [router])
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-lime-400 animate-pulse font-mono">
+          Checking SecurityX session...
+        </div>
+      </div>
+    )
+  }
+
   return (
     <CyberWrapper>
       <div className="min-h-screen">

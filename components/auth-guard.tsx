@@ -14,7 +14,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         // ⚡ CHANGE THIS LINE: Redirect to Home ("/") instead of Login ("/auth")
-        router.push("/") 
+        router.replace("/auth?mode=login")
       } else {
         setUser(currentUser)
       }

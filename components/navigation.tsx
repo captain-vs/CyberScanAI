@@ -186,12 +186,16 @@ export function Navigation() {
   }
 
   const handleLogout = async () => {
-    setIsOpen(false)
-    router.push("/")
-    setTimeout(async () => {
-      await signOut(auth)
-    }, 50)
+  setIsOpen(false)
+
+  try {
+    await signOut(auth)
+
+    router.replace("/")
+  } catch (error) {
+    console.error("Logout failed:", error)
   }
+}
 
   if (pathname.startsWith("/auth")) return null
   if (loading) return null
