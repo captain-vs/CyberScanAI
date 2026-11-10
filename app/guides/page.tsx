@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { guides } from "@/lib/guides"
-import { Button } from "react-day-picker"
+import { GuidesBackLink } from "@/components/guides-back-link"
 import { ArrowLeft, Clock, User, PlayCircle, Beaker, CheckCircle2, XCircle, Terminal, ShieldAlert, Key, Lightbulb, ChevronRight, Lock, FileCode, Server, Globe, Layers } from "lucide-react"
 export const metadata = {
   title: "Cybersecurity Guides for Beginners",
@@ -11,14 +11,7 @@ export const metadata = {
 export default function GuidesPage() {
   return (
     <main className="min-h-screen bg-black px-4 py-16 text-white">
-        <Button className="mb-6 text-slate-400 hover:text-white pl-2">
-            <Link 
-          href="/dashboard" 
-          className="inline-flex items-center text-slate-400 hover:text-white font-medium mb-8 transition-colors bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-800 hover:border-slate-600"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
-        </Link>
-        </Button>
+        <GuidesBackLink />
       <div className="mx-auto max-w-5xl">
         <p className="text-sm font-semibold uppercase tracking-wider text-lime-400">
           SecurityX Learning Library

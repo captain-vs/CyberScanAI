@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Fragment } from "react"
 import { usePathname } from "next/navigation"
 import { MessageSquare, Bot, User, Minimize2, Send, ArrowLeft, UserPlus, ShieldCheck, Check, CheckCheck } from "lucide-react"
 import { predefinedQA } from "./predefined-qa"
@@ -37,7 +37,76 @@ type Message = {
   receiverUid: string
   text: string
   timestamp: any
+  createdAt?: any
   read?: boolean
+}
+
+function getMessageDate(message: Message): Date | null {
+  const rawDate = message.timestamp ?? message.createdAt
+
+  if (!rawDate) return null
+
+  const date =
+    typeof rawDate?.toDate === "function"
+      ? rawDate.toDate()
+      : rawDate instanceof Date
+        ? rawDate
+        : new Date(rawDate)
+
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function getMessageDayKey(message: Message): string {
+  const date = getMessageDate(message)
+
+  if (!date) return "unknown"
+
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+}
+
+function formatMessageTime(message: Message): string {
+  const date = getMessageDate(message)
+
+  if (!date) return ""
+
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function formatDateSeparator(message: Message): string {
+  const date = getMessageDate(message)
+
+  if (!date) return "Recent messages"
+
+  const today = new Date()
+
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  ).getTime()
+
+  const messageStart = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).getTime()
+
+  const differenceInDays = Math.round(
+    (todayStart - messageStart) / (1000 * 60 * 60 * 24),
+  )
+
+  if (differenceInDays === 0) return "Today"
+  if (differenceInDays === 1) return "Yesterday"
+  if (differenceInDays === -1) return "Tomorrow"
+
+  return date.toLocaleDateString([], {
+    day: "numeric",
+    month: "short",
+    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+  })
 }
 
 export function ChatBox() {
@@ -168,8 +237,8 @@ const unsubMsgs = onSnapshot(messagesQuery, (snap) => {
 Object.keys(map).forEach(partner => {
   map[partner].sort((a, b) => {
     // Handle Firestore Timestamps, standard Dates, or fallback to 0/now for pending local writes
-    const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : (a.timestamp ? new Date(a.timestamp).getTime() : Date.now())
-    const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : (b.timestamp ? new Date(b.timestamp).getTime() : Date.now())
+    const timeA = getMessageDate(a)?.getTime() ?? 0
+    const timeB = getMessageDate(b)?.getTime() ?? 0
     return timeA - timeB
   })
 })
@@ -318,12 +387,7 @@ setInput("")
     }
   }
 
-  const formatTimestamp = (timestamp: any) => {
-    if (!timestamp) return ""
-    const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp)
-    if (isNaN(date.getTime())) return ""
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
+  
 
   const totalUnread = Object.keys(allMessagesMap).reduce((acc, partnerUid) => {
     const list = allMessagesMap[partnerUid] || []
@@ -536,32 +600,62 @@ setInput("")
                         <p className="text-[10px] text-slate-600 mt-1">Send a message below.</p>
                       </div>
                     ) : (
-                      peerMessages.map((msg) => {
-                        const isMe = msg.senderUid === currentUser?.uid
-                        const timeStr = formatTimestamp(msg.timestamp)
+                      peerMessages.map((msg, index) => {
+  const isMe = msg.senderUid === currentUser?.uid
+  const previousMessage = peerMessages[index - 1]
 
-                        return (
-                          <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                            <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
-                              isMe ? 'bg-slate-800 text-white border border-slate-700 font-semibold rounded-br-none' : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-bl-none'
-                            }`}>
-                              <div className="break-words">{msg.text}</div>
-                              <div className={`flex items-center justify-end gap-1.5 mt-1 text-[9px] ${isMe ? 'text-white/70' : 'text-slate-400'}`}>
-                                <span>{timeStr}</span>
-                                {isMe && (
-                                  <span>
-                                    {msg.read ? (
-                                      <CheckCheck className="h-3 w-3 text-blue-600 inline" />
-                                    ) : (
-                                      <Check className="h-3 w-3 inline opacity-70" />
-                                    )}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })
+  const showDateSeparator =
+    !previousMessage ||
+    getMessageDayKey(previousMessage) !== getMessageDayKey(msg)
+
+  const timeStr = formatMessageTime(msg)
+
+  return (
+    <Fragment key={msg.id}>
+      {showDateSeparator && (
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-800" />
+
+          <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            {formatDateSeparator(msg)}
+          </span>
+
+          <div className="h-px flex-1 bg-slate-800" />
+        </div>
+      )}
+
+      <div className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
+        <div
+          className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
+            isMe
+              ? "bg-slate-800 text-white border border-slate-700 font-semibold rounded-br-none"
+              : "bg-slate-900 text-slate-200 border border-slate-800 rounded-bl-none"
+          }`}
+        >
+          <div className="break-words">{msg.text}</div>
+
+          <div
+            className={`mt-1 flex items-center justify-end gap-1.5 text-[9px] ${
+              isMe ? "text-white/70" : "text-slate-400"
+            }`}
+          >
+            <span>{timeStr}</span>
+
+            {isMe && (
+              <span>
+                {msg.read ? (
+                  <CheckCheck className="inline h-3 w-3 text-blue-600" />
+                ) : (
+                  <Check className="inline h-3 w-3 opacity-70" />
+                )}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </Fragment>
+  )
+})
                     )
                   )}
 

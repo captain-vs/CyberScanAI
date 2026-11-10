@@ -58,6 +58,13 @@ function DashboardContent() {
   const [name, setName] = useState("")
   const [activity, setActivity] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
+  const DEFAULT_STATS: UserStats = {
+  scansCompleted: 0,
+  quizzesCompleted: 0,
+  challengesCompleted: 0,
+  points: 0,
+  level: 1,
+}
 
   useEffect(() => {
   let unsubUser: (() => void) | undefined
@@ -78,11 +85,22 @@ function DashboardContent() {
     unsubUser = onSnapshot(
       userRef,
       (snap) => {
-        if (!snap.exists()) return
-        const data = snap.data()
-        setName(data.name || "Operative")
-        setStats(data.stats || { points: 0, level: 1 })
-        setLoading(false)
+        if (!snap.exists()) {
+  setName(user.displayName || "Operative")
+  setStats(DEFAULT_STATS)
+  setLoading(false)
+  return
+}
+
+const data = snap.data()
+
+setName(data.name || user.displayName || "Operative")
+setStats({
+  ...DEFAULT_STATS,
+  ...(data.stats || {}),
+})
+
+setLoading(false)
       },
       (error) => {
         if (error.code === "permission-denied") return // 👈 Suppresses logout error

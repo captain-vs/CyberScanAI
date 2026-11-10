@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getGuide, guides } from "@/lib/guides"
+import { GuidesBackLink } from "@/components/guides-back-link"
 
 type GuidePageProps = {
   params: Promise<{ slug: string }>
@@ -45,12 +46,16 @@ export default async function GuideArticlePage({ params }: GuidePageProps) {
   return (
     <main className="min-h-screen bg-black px-4 py-16 text-white">
       <article className="mx-auto max-w-3xl">
-        <Link
-          href="/guides"
-          className="text-sm font-medium text-lime-400 hover:text-lime-300"
-        >
-          ← Back to all guides
-        </Link>
+        <div className="mb-8 flex flex-wrap items-center gap-5">
+  <GuidesBackLink />
+
+  <Link
+    href="/guides"
+    className="text-sm font-medium text-lime-400 hover:text-lime-300"
+  >
+    View all guides →
+  </Link>
+</div>
 
         <p className="mt-10 text-sm font-semibold uppercase tracking-wider text-lime-400">
           {guide.level} · {guide.readTime}

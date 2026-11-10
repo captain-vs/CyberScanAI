@@ -3,15 +3,33 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Shield, Github, Twitter, Linkedin, Heart, Download, Smartphone } from "lucide-react"
-import { Button } from "react-day-picker"
+import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { onAuthStateChanged } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 
 export default function Footer() {
   const pathname = usePathname()
 
+  const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null)
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setIsSignedIn(!!user)
+  })
+
+  return () => unsubscribe()
+}, [])
+
   // 🚫 Hide footer on auth pages
-  if (pathname.startsWith("/auth")) {
-    return null
-  }
+  const isGuidePage = pathname.startsWith("/guides")
+
+if (
+  pathname.startsWith("/auth") ||
+  (isGuidePage && isSignedIn === false)
+) {
+  return null
+}
 
   return (
     <footer className="relative border-t border-slate-800 bg-black text-slate-400 overflow-hidden">
@@ -31,8 +49,8 @@ export default function Footer() {
               <span className="text-xl tracking-tight font-bold">Security<span className="text-lime-400">X</span></span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs">
-              Advanced threat detection and cybersecurity education platform. 
-              Secure your digital footprint with next-gen scanning tools.
+              A beginner-friendly cybersecurity learning platform with lessons,
+              interactive challenges, and safe educational simulations.
             </p>
             <p className="text-xs text-slate-500 pt-2">
               System Status: <span className="text-lime-500 font-medium">● Operational</span>

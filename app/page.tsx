@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "@/lib/firebase"
@@ -36,36 +36,18 @@ import { CyberWrapper } from "@/components/cyber-wrapper"
 
 export default function Home() {
   const router = useRouter()
-  const [checkingAuth, setCheckingAuth] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        if (user) {
-          router.replace("/dashboard")
-        } else {
-          setCheckingAuth(false)
-        }
-      },
-      (error) => {
-        console.error("Authentication check failed:", error)
-        setCheckingAuth(false)
-      }
-    )
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      router.replace("/dashboard")
+    }
+  })
 
-    return () => unsubscribe()
-  }, [router])
+  return () => unsubscribe()
+}, [router])
 
-  if (checkingAuth) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-lime-400 animate-pulse font-mono">
-          Checking SecurityX session...
-        </div>
-      </div>
-    )
-  }
+ 
 
   return (
     <CyberWrapper>
@@ -85,8 +67,8 @@ export default function Home() {
                 <span className="font-mono tracking-wide">LEARN • PRACTICE • GROW</span>
               </div>
               
-              <h1 className="mb-6 text-5xl font-black tracking-tighter md:text-8xl text-white">
-                SECURITY<span className="text-lime-400">X</span>
+              <h1 className="mb-6 text-5xl font-black tracking-tighter md:text-7xl text-white">
+                Security<span className="text-lime-400">X</span>
               </h1>
               
               <p className="mb-10 text-xl text-slate-100 md:text-2xl max-w-2xl mx-auto leading-relaxed">
@@ -248,10 +230,32 @@ export default function Home() {
               <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
                 Join the network. Secure your future. Become an elite cybersecurity operative today.
               </p>
-              <Button size="lg" asChild className="bg-lime-500 hover:bg-lime-400 text-black font-bold h-12 px-8 text-lg">
-                <Link href="/auth?mode=register">
-                  Initialize Account <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
+              <Button size="lg" asChild className="bg-500 hover:bg-400 text-black font-bold h-12 px-8 text-lg">
+                <div className="flex flex-col justify-center gap-4 sm:flex-row">
+  <Button
+    size="lg"
+    asChild
+    className="bg-lime-500 hover:bg-lime-400 text-black font-bold h-12 px-8 text-lg"
+  >
+    <Link href="/auth?mode=register">
+      Create Free Account <ArrowRight className="ml-2 h-5 w-5" />
+    </Link>
+  </Button>
+
+  <Button
+    size="lg"
+    variant="outline"
+    asChild
+    className="bg-lime-500 hover:bg-lime-400 text-black font-bold h-12 px-8 text-lg"
+  >
+    <Link href="/guides">
+      <BookOpen className="mr-2 h-5 w-5" />
+      Explore Free Guides
+    </Link>
+  </Button>
+</div>
+                
+                
               </Button>
             </div>
           </motion.div>

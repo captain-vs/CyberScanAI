@@ -42,7 +42,7 @@ keywords: [
   "cybersecurity lessons",
   "ethical hacking education",
 ],
- authors: [{ name: "CyberScan Team" }],
+ authors: [{ name: "Vishnu Suthar" }],
   creator: "SecurityX",
 
 
@@ -80,7 +80,7 @@ icons: {
   // 7. Twitter-Specific Cards
   twitter: {
     card: "summary_large_image",
-    title: "SecurityX - Best Cybersecurity Learning Platform",
+    title: "SecurityX | Learn Cybersecurity Through Practice",
     description: "Learn cybersecurity through lessons, quizzes, interactive challenges, and safe educational simulations.",
     images: ["/og-image.png"], // Uses the same image from your /public folder
   },
